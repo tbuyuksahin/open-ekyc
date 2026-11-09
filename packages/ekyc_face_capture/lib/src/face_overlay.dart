@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:ekyc_camera/ekyc_camera.dart';
@@ -264,7 +263,7 @@ class _FaceOverlayState extends State<FaceOverlay>
 
   void _sync() {
     if (_animate) {
-      if (!_pulse.isAnimating) unawaited(_pulse.repeat(reverse: true));
+      if (!_pulse.isAnimating) _pulse.repeat(reverse: true).ignore();
     } else {
       _pulse
         ..stop()

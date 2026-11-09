@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:ekyc_nfc_reader/src/chip_reader.dart';
@@ -280,7 +279,7 @@ class _NfcScanOverlayState extends State<NfcScanOverlay>
 
   void _sync() {
     if (_animate) {
-      if (!_cycle.isAnimating) unawaited(_cycle.repeat());
+      if (!_cycle.isAnimating) _cycle.repeat().ignore();
     } else {
       _cycle.stop();
     }

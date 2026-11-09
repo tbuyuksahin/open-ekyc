@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:ekyc_camera/ekyc_camera.dart';
@@ -271,7 +270,7 @@ class _MrzOverlayState extends State<MrzOverlay>
 
   void _sync() {
     if (_animate) {
-      if (!_scan.isAnimating) unawaited(_scan.repeat(reverse: true));
+      if (!_scan.isAnimating) _scan.repeat(reverse: true).ignore();
     } else {
       _scan.stop();
     }
