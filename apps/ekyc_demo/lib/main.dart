@@ -2,9 +2,8 @@ import 'package:ekyc_demo/app.dart';
 import 'package:ekyc_demo/kyc/data/csca_assets.dart';
 import 'package:ekyc_demo/kyc/data/demo_document.dart';
 import 'package:ekyc_demo/kyc/data/fake_kyc_repository.dart';
-import 'package:ekyc_demo/kyc/data/flutter_nfc_session.dart';
-import 'package:ekyc_demo/kyc/domain/chip_reader.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_services.dart';
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 
 /// The image format ML Kit accepts from camera streams on each platform.
 ImageFormatGroup get mlKitImageFormat =>
@@ -15,6 +15,26 @@ const Map<DeviceOrientation, int> _orientations = {
   DeviceOrientation.landscapeRight: 270,
 };
 
+/// The rotation ML Kit needs to see a frame upright.
+///
+/// iOS frames only need the sensor orientation. Android frames also depend
+/// on how the device is held and, for the front camera, on mirroring.
+/// Returns `null` for an orientation the camera plugin should never report.
+InputImageRotation? inputImageRotation({
+  required bool isIOS,
+  required int sensorOrientation,
+  required CameraLensDirection lensDirection,
+  required DeviceOrientation deviceOrientation,
+}) {
+  if (isIOS) return InputImageRotationValue.fromRawValue(sensorOrientation);
+  final device = _orientations[deviceOrientation];
+  if (device == null) return null;
+  final degrees = lensDirection == CameraLensDirection.front
+      ? (sensorOrientation + device) % 360
+      : (sensorOrientation - device + 360) % 360;
+  return InputImageRotationValue.fromRawValue(degrees);
+}
+
 /// Converts a camera frame to an ML Kit input, or `null` if the frame
 /// format is not supported.
 InputImage? toInputImage(
@@ -22,18 +42,12 @@ InputImage? toInputImage(
   CameraDescription camera,
   DeviceOrientation deviceOrientation,
 ) {
-  final sensor = camera.sensorOrientation;
-  InputImageRotation? rotation;
-  if (Platform.isIOS) {
-    rotation = InputImageRotationValue.fromRawValue(sensor);
-  } else {
-    final device = _orientations[deviceOrientation];
-    if (device == null) return null;
-    final degrees = camera.lensDirection == CameraLensDirection.front
-        ? (sensor + device) % 360
-        : (sensor - device + 360) % 360;
-    rotation = InputImageRotationValue.fromRawValue(degrees);
-  }
+  final rotation = inputImageRotation(
+    isIOS: Platform.isIOS,
+    sensorOrientation: camera.sensorOrientation,
+    lensDirection: camera.lensDirection,
+    deviceOrientation: deviceOrientation,
+  );
   if (rotation == null) return null;
   final format = InputImageFormatValue.fromRawValue(image.format.raw as int);
   final supported = Platform.isAndroid

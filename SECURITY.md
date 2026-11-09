@@ -19,7 +19,7 @@ for real identity verification.
 | Modified client sends fake identity | The app sends **raw** LDS files; the server must repeat Passive Authentication. The client result is advisory | `KycSubmission` |
 | Eavesdropping on NFC | BAC + 3DES secure messaging; every response MAC verified in constant time; session closed on any SM error | `SecureMessaging`, `MrtdReader` |
 | Data leaking into logs and crash reports | No `print` (lint error); `AppLog` accepts only primitive event fields; exception and `toString()` texts are redacted | `AppLog`, `Mrz`, `MrzKey`, `Dg11`, `DocumentData` |
-| Data left on the device | Memory only; byte buffers wiped on submit, cancel, retake and close; camera temp file deleted at once; Android backups and device transfer disabled | `KycFlowCubit`, `FaceCameraView`, `data_extraction_rules.xml` |
+| Data left on the device | Memory only; byte buffers wiped on submit, cancel, retake and close; camera temp file deleted at once; camera released in the background; Android backups and device transfer disabled | `KycFlowCubit`, `MlKitCamera.takePicture`, `data_extraction_rules.xml` |
 | Shoulder surfing / screenshots | Document number masked on review; Android `FLAG_SECURE`; iOS snapshot shield | `maskMiddle`, `MainActivity`, `PrivacyShield` |
 | Replay of a verification session | Server-issued, short-lived session token sent with each submission | `VerificationSession` |
 

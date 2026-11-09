@@ -1,0 +1,24 @@
+name: ekyc_nfc_reader
+description: >-
+  Read and verify ePassport and eID chips over NFC in Flutter (BAC, secure
+  messaging, DG1/DG2/DG11, Passive Authentication) with an animated
+  "hold your document here" overlay.
+version: 0.1.0-dev.1
+repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/ekyc_nfc_reader
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_nfc_kit: ^3.6.2
+  icao_mrtd: ^0.1.0-dev.1
+  icao_mrz: ^0.1.0-dev.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

@@ -1,13 +1,24 @@
 import 'package:icao_mrtd/icao_mrtd.dart';
 
 /// Whether the device can read NFC documents right now.
-enum NfcStatus { available, disabled, notSupported }
+enum NfcStatus {
+  /// NFC is on.
+  available,
+
+  /// NFC hardware exists but is turned off.
+  disabled,
+
+  /// The device has no NFC reader.
+  notSupported,
+}
 
 /// A platform NFC reader session.
 ///
 /// Separating the platform session from the protocol keeps the reading
-/// logic testable with a virtual chip.
+/// logic testable with a virtual chip; see
+/// `package:ekyc_nfc_reader/testing.dart`.
 abstract interface class NfcSession {
+  /// Whether NFC can be used now.
   Future<NfcStatus> status();
 
   /// Waits for an ISO 14443 card and returns a transceiver for it.
@@ -24,8 +35,10 @@ abstract interface class NfcSession {
 
 /// Thrown by [NfcSession] implementations, with a mapped reason.
 class NfcSessionException implements Exception {
+  /// Creates an exception for [reason].
   const NfcSessionException(this.reason);
 
+  /// Why the session failed.
   final NfcFailure reason;
 
   @override
@@ -33,4 +46,19 @@ class NfcSessionException implements Exception {
 }
 
 /// Platform-level NFC failures.
-enum NfcFailure { tagLost, timeout, cancelled, unavailable, other }
+enum NfcFailure {
+  /// The card left the field.
+  tagLost,
+
+  /// No card was found in time.
+  timeout,
+
+  /// The user closed the system sheet (iOS).
+  cancelled,
+
+  /// NFC is off or unavailable.
+  unavailable,
+
+  /// Anything else.
+  other,
+}

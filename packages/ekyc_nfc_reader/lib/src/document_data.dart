@@ -9,6 +9,7 @@ import 'package:icao_mrz/icao_mrz.dart';
 /// portrait is biometric). Keep it in memory only and call [wipe] as soon
 /// as it is no longer needed.
 class DocumentData {
+  /// Creates the result of a chip read.
   DocumentData({
     required this.mrz,
     required this.face,

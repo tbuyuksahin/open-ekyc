@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:ekyc_demo/kyc/domain/liveness.dart';
 import 'package:ekyc_demo/kyc/domain/masking.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_cubit.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_state.dart';
 import 'package:ekyc_demo/kyc/ui/error_text.dart';
 import 'package:ekyc_demo/kyc/ui/step_scaffold.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
+import 'package:ekyc_face_capture/ekyc_face_capture.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icao_mrtd/icao_mrtd.dart';
@@ -76,6 +76,12 @@ class ReviewView extends StatelessWidget {
               icon: Icons.info_outline,
               title: l.livenessNotPerformed,
               body: l.livenessNotPerformedBody,
+            ),
+          if (state.liveness == LivenessOutcome.challengesPassed)
+            _Notice(
+              icon: Icons.directions_run_outlined,
+              title: l.livenessChallengesPassed,
+              body: l.livenessChallengesPassedBody,
             ),
           if (error != null)
             Card(

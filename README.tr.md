@@ -15,7 +15,11 @@ Dart ile yazıldı ve donanım olmadan sanal bir çiple test edildi.
 | --- | --- |
 | [`icao_mrz`](packages/icao_mrz) | TD1/TD2/TD3 MRZ okuma ve doğrulama, gürültülü OCR çıktısından MRZ'yi kurtarma, BAC anahtarı üretme. Saf Dart, bağımlılıksız. |
 | [`icao_mrtd`](packages/icao_mrtd) | BAC, 3DES güvenli mesajlaşma, LDS dosyaları (COM, DG1, DG2, DG11, SOD) ve **Passive Authentication** (RSA, RSA-PSS, açık parametreli eğriler dahil ECDSA). Taşıma katmanından bağımsız, saf Dart. |
-| [`ekyc_demo`](apps/ekyc_demo) | Flutter uygulaması. Akış: rıza → MRZ (kamera veya elle) → NFC → selfie → kontrol → gönderim. Tüm akışı sanal bir örnek belgeyle çalıştıran demo modu da var. |
+| [`ekyc_mrz_scanner`](packages/ekyc_mrz_scanner) | **MRZ adımı.** Kamerayla tarama (cihazda ML Kit, art arda iki aynı okuma şartı), ICAO ölçülerinde çizilen belge şablonlu overlay ve elle giriş formu. |
+| [`ekyc_nfc_reader`](packages/ekyc_nfc_reader) | **NFC adımı.** `ChipReader` (BAC → DG1/DG2/DG11/SOD → Passive Authentication, kullanıcının anlayacağı hatalar, ilerleme), `flutter_nfc_kit` oturumu ve "belgeyi buraya tutun" animasyonlu overlay. |
+| [`ekyc_face_capture`](packages/ekyc_face_capture) | **Selfie adımı.** Otomatik çeken kalite kontrolü, geri sayımlı oval overlay ve canlılık (liveness) arayüzü. |
+| [`ekyc_camera`](packages/ekyc_camera) | Ortak kamera kodu. Uygulama yaşam döngüsüne uyan ML Kit kare akışı, ekranı dolduran önizleme, karartma katmanı ve testler için sahte kamera platformu. |
+| [`ekyc_demo`](apps/ekyc_demo) | Adımları birleştiren Flutter uygulaması. Akış: rıza → MRZ → NFC → selfie → kontrol → gönderim. Sanal örnek belgeyle çalışan bir demo modu da var. |
 
 ## Neden var?
 
@@ -42,19 +46,45 @@ Demo modu kamera, NFC veya kişisel veri gerektirmez. ICAO'nun hayali örnek
 belgesini (Utopia) sanal bir çip üzerinde kullanır. Belge, geçici olarak
 üretilen bir CSCA ile imzalanır.
 
+## Overlay'leri özelleştirme
+
+Her adımın kendi overlay'i ve stil sınıfı var. Ekranları kodu
+çatallamadan kendi markanıza uydurabilirsiniz:
+
+```dart
+MrzScanner(style: MrzOverlayStyle(successColor: brand.success, cornerRadius: 16), ...)
+NfcScanOverlay(status: status, style: NfcOverlayStyle(antennaAlignment: Alignment(0, -0.5)))
+FaceCapture(style: FaceOverlayStyle(readyColor: brand.primary, widthFactor: 0.7), ...)
+```
+
+Overlay'ler her adımın durumuna göre değişir:
+
+| Adım | Durumlar |
+| --- | --- |
+| MRZ | arıyor → doğruluyor → okundu |
+| NFC | bekliyor → okuyor → başarılı veya hata |
+| Selfie | boşta → düzeltiliyor → hazır |
+
+Sistemde azaltılmış hareket açıksa animasyonlar durur. Tüm seçenekler her
+paketin README'sinde.
+
 ## Kalite kontrolleri
 
 * `very_good_analysis` ile `dart analyze --fatal-infos` çalışır. Tip
   kontrolleri katı modda (strict casts/inference/raw types). `avoid_print`
   uyarı değil, hata olarak işaretlenir.
-* 100 test:
+* 147 test:
   * Her BAC ve güvenli mesajlaşma adımı için ICAO 9303-11 Ek D vektörleri.
   * Sanal çiple tam okuma: yanlış anahtar, kopan bağlantı, sahte MAC.
   * Gerçek imzalarla Passive Authentication: değiştirilmiş veri, yanlış
     CSCA, süresi dolmuş sertifika.
+  * `flutter_nfc_kit` kanalı.
+  * Sahte platformlar üzerinden kamera ve ML Kit.
+  * Her overlay durumu.
   * Akış durum makinesi.
   * Demo akışının uçtan uca ekran testi.
-* CI'da test kapsamı %90'ın altına düşemez. Şu an %96 ve %95.
+* CI'da her paketin test kapsamı %90'ın altına düşemez. Şu an %96 ile %99,8
+  arasında.
 * CI release AAB ve iOS uygulaması derler, ikisine de
   [`preflight`](https://pub.dev/packages/preflight) uygular.
 

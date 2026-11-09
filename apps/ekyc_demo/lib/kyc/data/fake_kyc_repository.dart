@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:ekyc_demo/kyc/domain/kyc_repository.dart';
-import 'package:ekyc_demo/kyc/domain/liveness.dart';
+import 'package:ekyc_face_capture/ekyc_face_capture.dart';
 import 'package:icao_mrtd/icao_mrtd.dart';
 
 /// An in-memory stand-in for the verification backend.

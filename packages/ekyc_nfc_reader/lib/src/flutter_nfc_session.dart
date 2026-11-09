@@ -1,4 +1,4 @@
-import 'package:ekyc_demo/kyc/domain/nfc_session.dart';
+import 'package:ekyc_nfc_reader/src/nfc_session.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:icao_mrtd/icao_mrtd.dart';
@@ -6,12 +6,16 @@ import 'package:icao_mrtd/icao_mrtd.dart';
 /// [NfcSession] backed by `flutter_nfc_kit` (Android IsoDep, iOS
 /// NFCTagReaderSession).
 class FlutterNfcSession implements NfcSession {
+  /// Creates a session with the given timeouts.
   const FlutterNfcSession({
     this.pollTimeout = const Duration(seconds: 30),
     this.commandTimeout = const Duration(seconds: 5),
   });
 
+  /// How long to wait for a card.
   final Duration pollTimeout;
+
+  /// How long to wait for each chip response.
   final Duration commandTimeout;
 
   @override

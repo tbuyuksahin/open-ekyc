@@ -1,3 +1,5 @@
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
+
 /// Failures the user can understand and act on.
 ///
 /// Every low-level exception is mapped to one of these, so the UI never
@@ -33,3 +35,16 @@ enum KycError {
   /// Anything else.
   unknown,
 }
+
+/// Maps chip reading failures from `ekyc_nfc_reader` to flow errors.
+KycError kycErrorFromChip(ChipReadError error) => switch (error) {
+  ChipReadError.nfcNotSupported => KycError.nfcNotSupported,
+  ChipReadError.nfcDisabled => KycError.nfcDisabled,
+  ChipReadError.wrongMrz => KycError.wrongMrz,
+  ChipReadError.tagLost => KycError.tagLost,
+  ChipReadError.timeout => KycError.timeout,
+  ChipReadError.cancelled => KycError.cancelled,
+  ChipReadError.documentNotAuthentic => KycError.documentNotAuthentic,
+  ChipReadError.unsupportedDocument => KycError.unsupportedDocument,
+  ChipReadError.unknown => KycError.unknown,
+};

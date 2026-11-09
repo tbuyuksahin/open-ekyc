@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   packages:
-    name: Dart packages
+    name: Packages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -21,10 +21,14 @@ jobs:
       - run: flutter pub get
       - run: dart format --output=none --set-exit-if-changed packages
       - run: dart analyze --fatal-infos packages
-      - name: Test with coverage
+      - name: Test with coverage (90 % minimum per package)
         run: |
           for p in packages/*; do
-            (cd "$p" && dart run coverage:test_with_coverage --fail-under=90)
+            if grep -q "sdk: flutter" "$p/pubspec.yaml"; then
+              (cd "$p" && flutter test --coverage && awk -F: '/^LF:/{t+=$2} /^LH:/{h+=$2} END{c=100*h/t; printf "%s: %.1f%%\n", ENVIRON["PWD"], c; exit c < 90}' coverage/lcov.info)
+            else
+              (cd "$p" && dart run coverage:test_with_coverage --fail-under=90)
+            fi
           done
 
   app:

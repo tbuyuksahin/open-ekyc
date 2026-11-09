@@ -12,16 +12,15 @@ environment:
 
 dependencies:
   bloc: ^9.0.0
-  camera: ^0.12.2
+  ekyc_face_capture: ^0.1.0-dev.1
+  ekyc_mrz_scanner: ^0.1.0-dev.1
+  ekyc_nfc_reader: ^0.1.0-dev.1
   equatable: ^2.0.7
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
   flutter_localizations:
     sdk: flutter
-  flutter_nfc_kit: ^3.6.2
-  google_mlkit_face_detection: ^1.0.1
-  google_mlkit_text_recognition: ^1.0.1
   icao_mrtd: ^0.1.0-dev.1
   icao_mrz: ^0.1.0-dev.1
   intl: any

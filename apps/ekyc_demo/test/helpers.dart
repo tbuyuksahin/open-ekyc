@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:ekyc_demo/kyc/domain/nfc_session.dart';
-import 'package:icao_mrtd/icao_mrtd.dart';
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:icao_mrtd/testing.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 
@@ -38,44 +37,10 @@ class TestDocument {
   final CscaStore trustStore;
 }
 
-/// An [NfcSession] over a [VirtualMrtd], recording what the app asked for.
-class FakeNfcSession implements NfcSession {
-  FakeNfcSession(
-    this.files, {
-    this.nfcStatus = NfcStatus.available,
-    this.connectFailure,
-    this.loseTagAfter,
-  });
-
-  final Map<LdsFile, Uint8List> files;
-  final NfcStatus nfcStatus;
-  final NfcFailure? connectFailure;
-  final int? loseTagAfter;
-
-  final messages = <String>[];
-  String? closedWithError;
-  bool closed = false;
-
-  @override
-  Future<NfcStatus> status() async => nfcStatus;
-
-  @override
-  Future<ApduTransceiver> connect({required String prompt}) async {
-    messages.add(prompt);
-    if (connectFailure != null) throw NfcSessionException(connectFailure!);
-    return VirtualMrtd(
-      key: specimenKey,
-      files: files,
-      loseTagAfter: loseTagAfter,
-    );
-  }
-
-  @override
-  Future<void> setMessage(String message) async => messages.add(message);
-
-  @override
-  Future<void> close({String? message, String? errorMessage}) async {
-    closed = true;
-    closedWithError = errorMessage;
-  }
-}
+/// iOS sheet texts used by tests.
+const messages = ChipReadMessages(
+  prompt: 'prompt',
+  reading: 'reading',
+  done: 'done',
+  failed: 'failed',
+);

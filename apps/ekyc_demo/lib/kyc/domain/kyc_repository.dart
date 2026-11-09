@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ekyc_demo/kyc/domain/liveness.dart';
+import 'package:ekyc_face_capture/ekyc_face_capture.dart';
 import 'package:icao_mrtd/icao_mrtd.dart';
 
 /// A verification session issued by the server.

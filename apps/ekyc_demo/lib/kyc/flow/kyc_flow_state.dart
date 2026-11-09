@@ -1,10 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:ekyc_demo/kyc/domain/chip_reader.dart';
-import 'package:ekyc_demo/kyc/domain/document_data.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_error.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_repository.dart';
-import 'package:ekyc_demo/kyc/domain/liveness.dart';
+import 'package:ekyc_face_capture/ekyc_face_capture.dart';
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:equatable/equatable.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 

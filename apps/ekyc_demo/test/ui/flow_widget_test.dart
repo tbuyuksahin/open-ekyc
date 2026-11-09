@@ -1,16 +1,13 @@
 import 'package:ekyc_demo/app.dart';
 import 'package:ekyc_demo/kyc/data/demo_document.dart';
 import 'package:ekyc_demo/kyc/data/fake_kyc_repository.dart';
-import 'package:ekyc_demo/kyc/domain/chip_reader.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_services.dart';
-import 'package:ekyc_demo/kyc/ui/mrz_view.dart';
-import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations_en.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations_tr.dart';
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:icao_mrz/icao_mrz.dart';
 
 /// Pumps frames until [finder] matches, for screens with endless
 /// progress animations where pumpAndSettle would never return.
@@ -91,59 +88,5 @@ void main() {
     await tester.tap(find.text(tr.resultRestart));
     await tester.pumpAndSettle();
     expect(find.text(tr.consentTitle), findsOneWidget);
-  });
-
-  group('ManualMrzForm', () {
-    Future<List<MrzKey>> pumpForm(WidgetTester tester) async {
-      final submitted = <MrzKey>[];
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: ManualMrzForm(
-                onSubmit: submitted.add,
-                now: DateTime(2026, 11, 9),
-              ),
-            ),
-          ),
-        ),
-      );
-      return submitted;
-    }
-
-    Future<void> fill(
-      WidgetTester tester,
-      String n,
-      String dob,
-      String doe,
-    ) async {
-      final fields = find.byType(TextFormField);
-      await tester.enterText(fields.at(0), n);
-      await tester.enterText(fields.at(1), dob);
-      await tester.enterText(fields.at(2), doe);
-      await tester.tap(find.text(en.mrzContinue));
-      await tester.pump();
-    }
-
-    testWidgets('shows a message for every invalid field', (tester) async {
-      final submitted = await pumpForm(tester);
-      await fill(tester, 'A-1', '31.02.1990', '01.01.1980');
-      expect(find.text(en.mrzInvalidNumber), findsOneWidget);
-      expect(find.text(en.mrzInvalidDate), findsOneWidget);
-      await fill(tester, 'A1', '01.01.2030', '01.01.2031');
-      expect(find.text(en.mrzBirthInFuture), findsOneWidget);
-      await fill(tester, 'A1', '01.01.1990', '01.01.1980');
-      expect(find.text(en.mrzExpiryBeforeBirth), findsOneWidget);
-      expect(submitted, isEmpty);
-    });
-
-    testWidgets('submits a normalized key', (tester) async {
-      final submitted = await pumpForm(tester);
-      await fill(tester, 'l898902c', '06.08.1969', '23.06.1994');
-      expect(submitted.single.information, 'L898902C<369080619406236');
-    });
   });
 }

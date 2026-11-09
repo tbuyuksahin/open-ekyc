@@ -1,19 +1,18 @@
 import 'dart:typed_data';
 
 import 'package:bloc_test/bloc_test.dart';
-import 'package:ekyc_demo/kyc/domain/chip_reader.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_error.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_repository.dart';
-import 'package:ekyc_demo/kyc/domain/liveness.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_cubit.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_state.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_services.dart';
+import 'package:ekyc_face_capture/ekyc_face_capture.dart';
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
+import 'package:ekyc_nfc_reader/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:icao_mrtd/icao_mrtd.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../domain/chip_reader_test.dart' show messages;
 import '../helpers.dart';
 
 class _MockRepository extends Mock implements KycRepository {}
@@ -22,14 +21,17 @@ class _FakeSubmission extends Fake implements KycSubmission {}
 
 class _ErrorReader extends ChipReader {
   _ErrorReader(this.error)
-    : super(session: FakeNfcSession(const {}), trustStore: _empty);
+    : super(
+        session: VirtualNfcSession(key: specimenKey, files: const {}),
+        trustStore: _empty,
+      );
 
-  final KycError error;
+  final ChipReadError error;
 
   @override
   Future<Never> read(
     MrzKey key, {
-    required ChipReadMessages messages,
+    ChipReadMessages messages = const ChipReadMessages(),
     ChipReadProgress? onProgress,
   }) async => throw ChipReadException(error);
 }
@@ -57,7 +59,7 @@ void main() {
       chipReader:
           reader ??
           ChipReader(
-            session: FakeNfcSession(doc.files),
+            session: VirtualNfcSession(key: specimenKey, files: doc.files),
             trustStore: doc.trustStore,
           ),
       repository: repo,
@@ -66,6 +68,21 @@ void main() {
   );
 
   final selfie = Uint8List.fromList([1, 2, 3]);
+
+  test('completed movement challenges are reported, not called live', () async {
+    final c = cubit();
+    await c.start(demo: false);
+    await c.readChip(specimenKey, messages);
+    await c.faceCaptured(
+      selfie,
+      challenges: const [FaceChallenge.smile, FaceChallenge.turnLeft],
+    );
+    expect(
+      (c.state as ReviewStep).liveness,
+      LivenessOutcome.challengesPassed,
+    );
+    await c.close();
+  });
 
   test('happy path from consent to an approved result', () async {
     final c = cubit();
@@ -113,7 +130,7 @@ void main() {
 
   blocTest<KycFlowCubit, KycFlowState>(
     'a rejected MRZ key returns to the form with the error',
-    build: () => cubit(reader: _ErrorReader(KycError.wrongMrz)),
+    build: () => cubit(reader: _ErrorReader(ChipReadError.wrongMrz)),
     act: (c) async {
       await c.start(demo: false);
       await c.readChip(specimenKey, messages);
@@ -124,7 +141,7 @@ void main() {
 
   blocTest<KycFlowCubit, KycFlowState>(
     'other read errors offer retry and editing',
-    build: () => cubit(reader: _ErrorReader(KycError.tagLost)),
+    build: () => cubit(reader: _ErrorReader(ChipReadError.tagLost)),
     act: (c) async {
       await c.start(demo: false);
       await c.readChip(specimenKey, messages);

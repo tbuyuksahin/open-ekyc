@@ -2,12 +2,12 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:ekyc_demo/core/app_log.dart';
-import 'package:ekyc_demo/kyc/domain/chip_reader.dart';
-import 'package:ekyc_demo/kyc/domain/document_data.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_error.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_repository.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_state.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_services.dart';
+import 'package:ekyc_face_capture/ekyc_face_capture.dart';
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 
 /// Loads the services for a run: real hardware or the demo document.
@@ -49,6 +49,10 @@ class KycFlowCubit extends Cubit<KycFlowState> {
           }
         },
       );
+      AppLog.event('chip_read', {
+        'passive_auth': document.passiveAuth.status.name,
+        'dg11': document.dg11 != null,
+      });
       if (isClosed) {
         document.wipe();
         return;
@@ -56,11 +60,13 @@ class KycFlowCubit extends Cubit<KycFlowState> {
       _document = document;
       emit(FaceStep(document: document, sampleSelfie: _s.sampleSelfie));
     } on ChipReadException catch (e) {
+      final error = kycErrorFromChip(e.error);
+      AppLog.event('chip_read_failed', {'error': error.name});
       if (isClosed) return;
-      if (e.error == KycError.wrongMrz) {
-        emit(MrzStep(prefill: key, error: e.error, isDemo: _s.isDemo));
+      if (error == KycError.wrongMrz) {
+        emit(MrzStep(prefill: key, error: error, isDemo: _s.isDemo));
       } else {
-        emit(ChipErrorStep(key: key, error: e.error));
+        emit(ChipErrorStep(key: key, error: error));
       }
     }
   }
@@ -76,14 +82,24 @@ class KycFlowCubit extends Cubit<KycFlowState> {
     emit(MrzStep(prefill: key, isDemo: _s.isDemo));
   }
 
-  /// A selfie was captured.
-  Future<void> faceCaptured(Uint8List selfie) async {
+  /// A selfie was captured, after the active [challenges] if any.
+  ///
+  /// A configured liveness provider decides first; completed challenges
+  /// are reported only when no provider ran.
+  Future<void> faceCaptured(
+    Uint8List selfie, {
+    List<FaceChallenge> challenges = const [],
+  }) async {
     final document = _document;
     if (document == null) return;
     // Own a copy so wiping it never touches the caller's buffer.
     final copy = Uint8List.fromList(selfie);
     _selfie = copy;
-    final liveness = await _s.liveness.check(copy);
+    final checked = await _s.liveness.check(copy);
+    final liveness =
+        checked == LivenessOutcome.notPerformed && challenges.isNotEmpty
+        ? LivenessOutcome.challengesPassed
+        : checked;
     AppLog.event('face_captured', {'liveness': liveness.name});
     emit(ReviewStep(document: document, selfie: copy, liveness: liveness));
   }

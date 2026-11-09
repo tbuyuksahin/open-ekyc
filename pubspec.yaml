@@ -7,6 +7,10 @@ environment:
 workspace:
   - packages/icao_mrz
   - packages/icao_mrtd
+  - packages/ekyc_camera
+  - packages/ekyc_mrz_scanner
+  - packages/ekyc_nfc_reader
+  - packages/ekyc_face_capture
   - apps/ekyc_demo
 
 dev_dependencies:

@@ -1,12 +1,9 @@
-import 'package:ekyc_demo/core/app_log.dart';
-import 'package:ekyc_demo/kyc/domain/chip_reader.dart';
-import 'package:ekyc_demo/kyc/domain/kyc_error.dart';
-import 'package:ekyc_demo/kyc/domain/nfc_session.dart';
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
+import 'package:ekyc_nfc_reader/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:icao_mrtd/icao_mrtd.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 
-import '../helpers.dart';
+import 'helpers.dart';
 
 const messages = ChipReadMessages(
   prompt: 'prompt',
@@ -17,19 +14,14 @@ const messages = ChipReadMessages(
 
 void main() {
   late TestDocument doc;
-  final logged = <String, Map<String, Object>>{};
-  setUpAll(() {
-    doc = TestDocument();
-    AppLog.sink = (e, f) => logged[e] = f;
-  });
-  tearDownAll(() => AppLog.sink = null);
+  setUpAll(() => doc = TestDocument());
 
-  Matcher failsWith(KycError error) => throwsA(
+  Matcher failsWith(ChipReadError error) => throwsA(
     isA<ChipReadException>().having((e) => e.error, 'error', error),
   );
 
   test('reads, parses and verifies a document', () async {
-    final session = FakeNfcSession(doc.files);
+    final session = fakeSession(doc.files);
     final steps = <ChipReadStep>[];
     final fractions = <double>[];
     final data =
@@ -54,13 +46,12 @@ void main() {
     expect(fractions, orderedEquals([...fractions]..sort()));
     expect(session.messages, ['prompt', 'reading']);
     expect(session.closedWithError, isNull);
-    expect(logged['chip_read'], {'passive_auth': 'verified', 'dg11': true});
   });
 
   test('DG11 is optional; names then come from the MRZ', () async {
     final noDg11 = TestDocument(withDg11: false);
     final data = await ChipReader(
-      session: FakeNfcSession(noDg11.files),
+      session: fakeSession(noDg11.files),
       trustStore: noDg11.trustStore,
     ).read(specimenKey, messages: messages);
     expect(data.dg11, isNull);
@@ -69,7 +60,7 @@ void main() {
 
   test('without a trust anchor the result is untrusted, not failed', () async {
     final data = await ChipReader(
-      session: FakeNfcSession(doc.files),
+      session: fakeSession(doc.files),
       trustStore: CscaStore.empty(),
     ).read(specimenKey, messages: messages);
     expect(data.passiveAuth.status, PassiveAuthStatus.untrusted);
@@ -77,13 +68,13 @@ void main() {
 
   test('a tampered data group is reported as not authentic', () async {
     final forged = TestDocument(tamperDg1: true);
-    final session = FakeNfcSession(forged.files);
+    final session = fakeSession(forged.files);
     await expectLater(
       ChipReader(
         session: session,
         trustStore: forged.trustStore,
       ).read(specimenKey, messages: messages),
-      failsWith(KycError.documentNotAuthentic),
+      failsWith(ChipReadError.documentNotAuthentic),
     );
     expect(session.closedWithError, 'failed');
   });
@@ -94,47 +85,47 @@ void main() {
       dateOfBirth: const MrzDate('740812'),
       dateOfExpiry: const MrzDate('120415'),
     );
-    final cases = <(FakeNfcSession, MrzKey, KycError)>[
-      (FakeNfcSession(doc.files), wrongKey, KycError.wrongMrz),
+    final cases = <(VirtualNfcSession, MrzKey, ChipReadError)>[
+      (fakeSession(doc.files), wrongKey, ChipReadError.wrongMrz),
       (
-        FakeNfcSession(doc.files, nfcStatus: NfcStatus.disabled),
+        fakeSession(doc.files, nfcStatus: NfcStatus.disabled),
         specimenKey,
-        KycError.nfcDisabled,
+        ChipReadError.nfcDisabled,
       ),
       (
-        FakeNfcSession(doc.files, nfcStatus: NfcStatus.notSupported),
+        fakeSession(doc.files, nfcStatus: NfcStatus.notSupported),
         specimenKey,
-        KycError.nfcNotSupported,
+        ChipReadError.nfcNotSupported,
       ),
       (
-        FakeNfcSession(doc.files, connectFailure: NfcFailure.timeout),
+        fakeSession(doc.files, connectFailure: NfcFailure.timeout),
         specimenKey,
-        KycError.timeout,
+        ChipReadError.timeout,
       ),
       (
-        FakeNfcSession(doc.files, connectFailure: NfcFailure.cancelled),
+        fakeSession(doc.files, connectFailure: NfcFailure.cancelled),
         specimenKey,
-        KycError.cancelled,
+        ChipReadError.cancelled,
       ),
       (
-        FakeNfcSession(doc.files, connectFailure: NfcFailure.tagLost),
+        fakeSession(doc.files, connectFailure: NfcFailure.tagLost),
         specimenKey,
-        KycError.tagLost,
+        ChipReadError.tagLost,
       ),
       (
-        FakeNfcSession(doc.files, connectFailure: NfcFailure.unavailable),
+        fakeSession(doc.files, connectFailure: NfcFailure.unavailable),
         specimenKey,
-        KycError.nfcDisabled,
+        ChipReadError.nfcDisabled,
       ),
       (
-        FakeNfcSession(doc.files, connectFailure: NfcFailure.other),
+        fakeSession(doc.files, connectFailure: NfcFailure.other),
         specimenKey,
-        KycError.unknown,
+        ChipReadError.unknown,
       ),
       (
-        FakeNfcSession({...doc.files}..remove(LdsFile.sod)),
+        fakeSession({...doc.files}..remove(LdsFile.sod)),
         specimenKey,
-        KycError.unknown,
+        ChipReadError.unknown,
       ),
     ];
     for (final (session, key, error) in cases) {
@@ -147,22 +138,21 @@ void main() {
         reason: error.name,
       );
     }
-    expect(logged['chip_read_failed'], {'error': 'unknown'});
   });
 
   test('a card that leaves the field mid-read is not a crash', () async {
     await expectLater(
       ChipReader(
-        session: FakeNfcSession(doc.files, loseTagAfter: 8),
+        session: fakeSession(doc.files, loseTagAfter: 8),
         trustStore: doc.trustStore,
       ).read(specimenKey, messages: messages),
-      failsWith(KycError.unknown),
+      failsWith(ChipReadError.unknown),
     );
   });
 
   test('wiping clears the portrait and raw files', () async {
     final data = await ChipReader(
-      session: FakeNfcSession(doc.files),
+      session: fakeSession(doc.files),
       trustStore: doc.trustStore,
     ).read(specimenKey, messages: messages);
     data.wipe();

@@ -1,6 +1,6 @@
-import 'package:ekyc_demo/kyc/domain/nfc_session.dart';
+import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
+import 'package:ekyc_nfc_reader/testing.dart';
 import 'package:flutter/services.dart';
-import 'package:icao_mrtd/icao_mrtd.dart';
 import 'package:icao_mrtd/testing.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 
@@ -53,42 +53,12 @@ class DemoDocument {
   final CscaStore trustStore;
   final Uint8List portrait;
 
-  /// An NFC session that "finds" this document after a short delay.
-  NfcSession asNfcSession() => _DemoNfcSession(this);
-}
-
-class _DemoNfcSession implements NfcSession {
-  _DemoNfcSession(this.document);
-
-  final DemoDocument document;
-
-  @override
-  Future<NfcStatus> status() async => NfcStatus.available;
-
-  @override
-  Future<ApduTransceiver> connect({required String prompt}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return _SlowChip(
-      VirtualMrtd(key: document.mrz.key, files: document.files),
-    );
-  }
-
-  @override
-  Future<void> setMessage(String message) async {}
-
-  @override
-  Future<void> close({String? message, String? errorMessage}) async {}
-}
-
-/// Adds realistic latency so the progress UI is visible in the demo.
-class _SlowChip implements ApduTransceiver {
-  _SlowChip(this.chip);
-
-  final ApduTransceiver chip;
-
-  @override
-  Future<Uint8List> transceive(Uint8List command) async {
-    await Future<void>.delayed(const Duration(milliseconds: 15));
-    return chip.transceive(command);
-  }
+  /// An NFC session that "finds" this document after a short delay, with
+  /// realistic latency so the progress UI is visible.
+  NfcSession asNfcSession() => VirtualNfcSession(
+    key: mrz.key,
+    files: files,
+    connectDelay: const Duration(milliseconds: 600),
+    commandDelay: const Duration(milliseconds: 15),
+  );
 }

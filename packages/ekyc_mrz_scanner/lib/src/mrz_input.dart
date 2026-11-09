@@ -1,6 +1,6 @@
 import 'package:icao_mrz/icao_mrz.dart';
 
-/// Converts and validates the manual MRZ key form.
+/// Converts and validates what the user types into the manual MRZ form.
 abstract final class MrzInput {
   static final _number = RegExp(r'^[A-Z0-9]{1,15}$');
   static final _date = RegExp(r'^(\d{2})\.(\d{2})\.(\d{4})$');
@@ -9,6 +9,8 @@ abstract final class MrzInput {
   static String normalizeNumber(String input) =>
       input.replaceAll(RegExp(r'\s'), '').toUpperCase();
 
+  /// Whether [input] is a plausible document number (1-15 letters or
+  /// digits after normalization).
   static bool isValidNumber(String input) =>
       _number.hasMatch(normalizeNumber(input));
 

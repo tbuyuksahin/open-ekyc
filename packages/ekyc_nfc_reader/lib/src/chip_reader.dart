@@ -1,23 +1,74 @@
 import 'dart:typed_data';
 
-import 'package:ekyc_demo/core/app_log.dart';
-import 'package:ekyc_demo/kyc/domain/document_data.dart';
-import 'package:ekyc_demo/kyc/domain/kyc_error.dart';
-import 'package:ekyc_demo/kyc/domain/nfc_session.dart';
+import 'package:ekyc_nfc_reader/src/document_data.dart';
+import 'package:ekyc_nfc_reader/src/nfc_session.dart';
 import 'package:icao_mrtd/icao_mrtd.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 
 /// Steps of a chip read, for progress UI.
-enum ChipReadStep { waitingForCard, authenticating, reading, verifying }
+enum ChipReadStep {
+  /// Waiting for the user to hold the document to the phone.
+  waitingForCard,
+
+  /// Basic Access Control with the MRZ key.
+  authenticating,
+
+  /// Reading the data groups.
+  reading,
+
+  /// Passive Authentication.
+  verifying,
+}
 
 /// Progress callback: current step and overall fraction (0-1).
 typedef ChipReadProgress = void Function(ChipReadStep step, double fraction);
 
-/// Raised by [ChipReader] with a user-facing [KycError].
+/// Why a chip read failed, in terms the user can act on.
+///
+/// Low-level exceptions never leak to the UI; every one maps to one of
+/// these.
+enum ChipReadError {
+  /// The device has no NFC hardware.
+  nfcNotSupported,
+
+  /// NFC is turned off in system settings.
+  nfcDisabled,
+
+  /// The chip rejected the MRZ key: a document number or date is wrong.
+  wrongMrz,
+
+  /// The document moved away from the antenna during reading.
+  tagLost,
+
+  /// No document was found before the scan timed out.
+  timeout,
+
+  /// The user closed the system NFC sheet (iOS).
+  cancelled,
+
+  /// Passive Authentication failed: the chip data was altered or forged.
+  documentNotAuthentic,
+
+  /// The chip data could not be understood.
+  unsupportedDocument,
+
+  /// Anything else.
+  unknown;
+
+  /// Whether trying again can help, as opposed to a dead end.
+  bool get isRetryable => switch (this) {
+    nfcNotSupported || documentNotAuthentic => false,
+    _ => true,
+  };
+}
+
+/// Raised by [ChipReader] with a user-facing [error].
 class ChipReadException implements Exception {
+  /// Creates an exception for [error].
   const ChipReadException(this.error);
 
-  final KycError error;
+  /// What went wrong.
+  final ChipReadError error;
 
   @override
   String toString() => 'ChipReadException(${error.name})';
@@ -25,24 +76,36 @@ class ChipReadException implements Exception {
 
 /// Localized texts for the iOS NFC sheet.
 class ChipReadMessages {
+  /// Creates messages, defaulting to English.
   const ChipReadMessages({
-    required this.prompt,
-    required this.reading,
-    required this.done,
-    required this.failed,
+    this.prompt = 'Hold your document to the top of the phone.',
+    this.reading = 'Reading the chip. Keep still.',
+    this.done = 'Done.',
+    this.failed = 'Could not read the document.',
   });
 
+  /// Shown while waiting for the document.
   final String prompt;
+
+  /// Shown while reading.
   final String reading;
+
+  /// Shown on success.
   final String done;
+
+  /// Shown on failure.
   final String failed;
 }
 
 /// Reads and verifies an eMRTD chip.
 class ChipReader {
+  /// Creates a reader that uses [session] and trusts [trustStore].
   ChipReader({required this.session, required this.trustStore});
 
+  /// The platform NFC session.
   final NfcSession session;
+
+  /// Trusted CSCA certificates for Passive Authentication.
   final CscaStore trustStore;
 
   // Progress before the first file (connect and BAC).
@@ -58,17 +121,20 @@ class ChipReader {
     (LdsFile.sod, 0.15),
   ];
 
+  /// Reads the document that opens with [key].
+  ///
+  /// Throws [ChipReadException] on any failure.
   Future<DocumentData> read(
     MrzKey key, {
-    required ChipReadMessages messages,
+    ChipReadMessages messages = const ChipReadMessages(),
     ChipReadProgress? onProgress,
   }) async {
     final status = await session.status();
     switch (status) {
       case NfcStatus.notSupported:
-        throw const ChipReadException(KycError.nfcNotSupported);
+        throw const ChipReadException(ChipReadError.nfcNotSupported);
       case NfcStatus.disabled:
-        throw const ChipReadException(KycError.nfcDisabled);
+        throw const ChipReadException(ChipReadError.nfcDisabled);
       case NfcStatus.available:
         break;
     }
@@ -105,14 +171,9 @@ class ChipReader {
       onProgress?.call(ChipReadStep.verifying, 1);
       final data = _parse(files);
       await session.close(message: messages.done);
-      AppLog.event('chip_read', {
-        'passive_auth': data.passiveAuth.status.name,
-        'dg11': data.dg11 != null,
-      });
       return data;
     } on Object catch (e) {
       final error = _map(e);
-      AppLog.event('chip_read_failed', {'error': error.name});
       await session.close(errorMessage: messages.failed);
       throw ChipReadException(error);
     } finally {
@@ -131,7 +192,7 @@ class ChipReader {
       trustStore: trustStore,
     );
     if (passive.status == PassiveAuthStatus.failed) {
-      throw const ChipReadException(KycError.documentNotAuthentic);
+      throw const ChipReadException(ChipReadError.documentNotAuthentic);
     }
     final dg11 = files[LdsFile.dg11];
     return DocumentData(
@@ -143,17 +204,19 @@ class ChipReader {
     );
   }
 
-  static KycError _map(Object e) => switch (e) {
+  static ChipReadError _map(Object e) => switch (e) {
     ChipReadException(:final error) => error,
-    AccessDeniedException() => KycError.wrongMrz,
-    NfcSessionException(reason: NfcFailure.tagLost) => KycError.tagLost,
-    NfcSessionException(reason: NfcFailure.timeout) => KycError.timeout,
-    NfcSessionException(reason: NfcFailure.cancelled) => KycError.cancelled,
-    NfcSessionException(reason: NfcFailure.unavailable) => KycError.nfcDisabled,
+    AccessDeniedException() => ChipReadError.wrongMrz,
+    NfcSessionException(reason: NfcFailure.tagLost) => ChipReadError.tagLost,
+    NfcSessionException(reason: NfcFailure.timeout) => ChipReadError.timeout,
+    NfcSessionException(reason: NfcFailure.cancelled) =>
+      ChipReadError.cancelled,
+    NfcSessionException(reason: NfcFailure.unavailable) =>
+      ChipReadError.nfcDisabled,
     // A broken secure messaging session almost always means the card
     // moved; retrying is the right advice.
-    SecureMessagingException() => KycError.tagLost,
-    LdsFormatException() => KycError.unsupportedDocument,
-    _ => KycError.unknown,
+    SecureMessagingException() => ChipReadError.tagLost,
+    LdsFormatException() => ChipReadError.unsupportedDocument,
+    _ => ChipReadError.unknown,
   };
 }
