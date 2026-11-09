@@ -1,0 +1,10 @@
+include: ../../analysis_options.yaml
+
+analyzer:
+  exclude:
+    - lib/l10n/gen/**
+
+linter:
+  rules:
+    # Application code, not a published API.
+    public_member_api_docs: false

@@ -1,0 +1,17 @@
+name: icao_mrz
+description: >-
+  Parse and validate ICAO 9303 machine readable zones (TD1, TD2, TD3), recover
+  MRZ lines from OCR text and build the BAC key input for ePassport chips.
+version: 0.1.0-dev.1
+repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/icao_mrz
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  meta: ^1.16.0
+
+dev_dependencies:
+  test: ^1.26.0

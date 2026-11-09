@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  packages:
+    name: Dart packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed packages
+      - run: dart analyze --fatal-infos packages
+      - name: Test with coverage
+        run: |
+          for p in packages/*; do
+            (cd "$p" && dart run coverage:test_with_coverage --fail-under=90)
+          done
+
+  app:
+    name: Flutter app
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/ekyc_demo
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed $(git ls-files '*.dart')
+      - run: flutter analyze --fatal-infos
+      - run: flutter test
+      - run: flutter build appbundle --release
+      - name: Store rejection check (preflight)
+        run: |
+          dart pub global activate preflight
+          dart pub global run preflight --platform android --strict
+
+  ios:
+    name: iOS build
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: apps/ekyc_demo
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --no-codesign --debug
+      - name: Store rejection check (preflight)
+        run: |
+          dart pub global activate preflight
+          dart pub global run preflight --platform ios --strict --skip ios-xcode-version

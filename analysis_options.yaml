@@ -1,0 +1,17 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # Sensitive identity data must never reach logs.
+    avoid_print: error
+  exclude:
+    - "**/*.g.dart"
+    - "apps/ekyc_demo/lib/l10n/gen/**"
+
+linter:
+  rules:
+    public_member_api_docs: true
