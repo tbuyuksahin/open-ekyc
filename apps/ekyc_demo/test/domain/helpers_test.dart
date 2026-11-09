@@ -3,9 +3,8 @@ import 'dart:typed_data';
 import 'package:ekyc_demo/kyc/data/fake_kyc_repository.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_repository.dart';
 import 'package:ekyc_demo/kyc/domain/masking.dart';
-import 'package:ekyc_face_capture/ekyc_face_capture.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:icao_mrtd/icao_mrtd.dart';
 
 void main() {
   test('maskMiddle hides the middle of a value', () {

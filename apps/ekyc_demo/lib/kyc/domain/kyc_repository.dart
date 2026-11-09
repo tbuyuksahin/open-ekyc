@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ekyc_face_capture/ekyc_face_capture.dart';
-import 'package:icao_mrtd/icao_mrtd.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 
 /// A verification session issued by the server.
 ///

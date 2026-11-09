@@ -15,11 +15,12 @@ Dart ile yazıldı ve donanım olmadan sanal bir çiple test edildi.
 | --- | --- |
 | [`icao_mrz`](packages/icao_mrz) | TD1/TD2/TD3 MRZ okuma ve doğrulama, gürültülü OCR çıktısından MRZ'yi kurtarma, BAC anahtarı üretme. Saf Dart, bağımlılıksız. |
 | [`icao_mrtd`](packages/icao_mrtd) | BAC, 3DES güvenli mesajlaşma, LDS dosyaları (COM, DG1, DG2, DG11, SOD) ve **Passive Authentication** (RSA, RSA-PSS, açık parametreli eğriler dahil ECDSA). Taşıma katmanından bağımsız, saf Dart. |
+| [`ekyc_sdk`](packages/ekyc_sdk) | **Hazır SDK.** `Ekyc.start(context)` tüm akışı çalıştırır; `Ekyc.scanMrz`, `Ekyc.readChip` ve `Ekyc.captureSelfie` tek adımı çalıştırır. Türkçe ve İngilizce metinler hazır gelir, tüm overlay'ler tek temadan ayarlanır. |
 | [`ekyc_mrz_scanner`](packages/ekyc_mrz_scanner) | **MRZ adımı.** Kamerayla tarama (cihazda ML Kit, art arda iki aynı okuma şartı), ICAO ölçülerinde çizilen belge şablonlu overlay ve elle giriş formu. |
 | [`ekyc_nfc_reader`](packages/ekyc_nfc_reader) | **NFC adımı.** `ChipReader` (BAC → DG1/DG2/DG11/SOD → Passive Authentication, kullanıcının anlayacağı hatalar, ilerleme), `flutter_nfc_kit` oturumu ve "belgeyi buraya tutun" animasyonlu overlay. |
 | [`ekyc_face_capture`](packages/ekyc_face_capture) | **Selfie adımı.** Otomatik çeken kalite kontrolü, geri sayımlı oval overlay ve canlılık (liveness) arayüzü. |
 | [`ekyc_camera`](packages/ekyc_camera) | Ortak kamera kodu. Uygulama yaşam döngüsüne uyan ML Kit kare akışı, ekranı dolduran önizleme, karartma katmanı ve testler için sahte kamera platformu. |
-| [`ekyc_demo`](apps/ekyc_demo) | Adımları birleştiren Flutter uygulaması. Akış: rıza → MRZ → NFC → selfie → kontrol → gönderim. Sanal örnek belgeyle çalışan bir demo modu da var. |
+| [`ekyc_demo`](apps/ekyc_demo) | Örnek uygulama. SDK ekranlarının çevresine rıza, kontrol ve gönderim adımlarını ekler. Sanal örnek belgeyle çalışan bir demo modu da var. |
 
 ## Neden var?
 
@@ -33,6 +34,20 @@ Bu proje zinciri korur:
 çip ──BAC/SM──▶ ham DG1, DG2, DG11, SOD ──▶ cihazda Passive Authentication (bilgi amaçlı)
                                         └──▶ sunucu aynı ham dosyaları yeniden doğrular (asıl karar)
 ```
+
+## Kendi uygulamanızda kullanın
+
+```dart
+final result = await Ekyc.start(context);          // MRZ → NFC → selfie
+final key = await Ekyc.scanMrz(context);           // ya da tek adım
+final document = await Ekyc.readChip(context, mrzKey: key!);
+final selfie = await Ekyc.captureSelfie(context);
+```
+
+`EkycFlow` widget'ını kendi sayfanıza gömebilir, tek bir adım ekranını
+kullanabilir ya da `MrzScanner` gibi yalın bir widget'ı kendi düzeninize
+koyabilirsiniz. Tüm seviyeler ve seçenekler
+[`ekyc_sdk` README](packages/ekyc_sdk/README.md) dosyasında.
 
 ## Deneyin
 
@@ -73,7 +88,7 @@ paketin README'sinde.
 * `very_good_analysis` ile `dart analyze --fatal-infos` çalışır. Tip
   kontrolleri katı modda (strict casts/inference/raw types). `avoid_print`
   uyarı değil, hata olarak işaretlenir.
-* 147 test:
+* 183 test:
   * Her BAC ve güvenli mesajlaşma adımı için ICAO 9303-11 Ek D vektörleri.
   * Sanal çiple tam okuma: yanlış anahtar, kopan bağlantı, sahte MAC.
   * Gerçek imzalarla Passive Authentication: değiştirilmiş veri, yanlış
@@ -81,6 +96,8 @@ paketin README'sinde.
   * `flutter_nfc_kit` kanalı.
   * Sahte platformlar üzerinden kamera ve ML Kit.
   * Her overlay durumu.
+  * Hareketli doğrulama ve iki çekim modu.
+  * SDK giriş noktaları, Türkçe ve İngilizce.
   * Akış durum makinesi.
   * Demo akışının uçtan uca ekran testi.
 * CI'da her paketin test kapsamı %90'ın altına düşemez. Şu an %96 ile %99,8

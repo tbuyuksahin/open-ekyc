@@ -1,8 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:icao_mrtd/testing.dart';
-import 'package:icao_mrz/icao_mrz.dart';
 
 const specimenMrz = [
   'P<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<',

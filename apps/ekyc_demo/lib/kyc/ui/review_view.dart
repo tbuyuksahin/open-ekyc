@@ -4,9 +4,8 @@ import 'package:ekyc_demo/kyc/domain/masking.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_cubit.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_state.dart';
 import 'package:ekyc_demo/kyc/ui/error_text.dart';
-import 'package:ekyc_demo/kyc/ui/step_scaffold.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
-import 'package:ekyc_face_capture/ekyc_face_capture.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icao_mrtd/icao_mrtd.dart';
@@ -25,7 +24,7 @@ class ReviewView extends StatelessWidget {
     final dates = DateFormat.yMd(Localizations.localeOf(context).toString());
     String date(DateTime? d) => d == null ? '—' : dates.format(d);
     final error = state.error;
-    return StepScaffold(
+    return EkycStepScaffold(
       title: l.reviewTitle,
       onCancel: state.submitting ? null : cubit.restart,
       cancelLabel: l.cancel,

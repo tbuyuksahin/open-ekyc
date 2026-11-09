@@ -4,7 +4,7 @@ import 'package:ekyc_demo/kyc/data/fake_kyc_repository.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_services.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations_en.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations_tr.dart';
-import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,11 +65,11 @@ void main() {
     await tester.tap(find.byType(Checkbox));
     await tester.pump();
     await tester.tap(find.text(tr.consentDemo));
-    await pumpUntil(tester, find.text(tr.mrzContinue));
+    await pumpUntil(tester, find.text(EkycStrings.tr.mrzContinue));
 
     // The specimen key is prefilled; continue to the chip.
     expect(find.text('L898902C3'), findsOneWidget);
-    await tester.tap(find.text(tr.mrzContinue));
+    await tester.tap(find.text(EkycStrings.tr.mrzContinue));
     await pumpUntil(tester, find.text(tr.faceUseSample));
 
     await tester.tap(find.text(tr.faceUseSample));

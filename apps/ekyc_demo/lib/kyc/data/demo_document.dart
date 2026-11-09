@@ -1,8 +1,7 @@
-import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:ekyc_nfc_reader/testing.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:flutter/services.dart';
 import 'package:icao_mrtd/testing.dart';
-import 'package:icao_mrz/icao_mrz.dart';
 
 /// A fictitious ICAO specimen document on a virtual chip, so the whole
 /// flow can be shown and tested without a real passport or NFC hardware.

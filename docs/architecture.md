@@ -1,13 +1,15 @@
 # Architecture
 
 ```text
-apps/ekyc_demo            Wires the steps into one flow; owns consent, review and submission
+apps/ekyc_demo            Example host: consent, review and submission around the SDK screens
  ├─ kyc/flow              KycFlowCubit: a state machine, one state per screen
  │                        Consent → Mrz → Chip(progress) / ChipError → Face → Review → Result
  ├─ kyc/domain            KycError, KycRepository, masking
  ├─ kyc/data              FakeKycRepository, DemoDocument, CSCA loader
- └─ kyc/ui                Screens; localized texts are passed into the step widgets
+ └─ kyc/ui                Consent, review and result screens; SDK screens for the steps
 
+packages/ekyc_sdk           Ekyc.start / scanMrz / readChip / captureSelfie, EkycFlow,
+                            EkycFlowController, step screens, EkycStrings (EN/TR), EkycTheme
 packages/ekyc_mrz_scanner   MrzScanner, MrzOverlay(+Style), ManualMrzForm, MrzInput
 packages/ekyc_nfc_reader    ChipReader, NfcSession, FlutterNfcSession, DocumentData,
                             NfcScanOverlay(+Style), testing: VirtualNfcSession
@@ -18,13 +20,14 @@ packages/icao_mrz           MRZ parsing, check digits, OCR recovery, BAC key inp
 ```
 
 ```text
-ekyc_demo ──▶ ekyc_mrz_scanner ──▶ ekyc_camera, icao_mrz
-         ├──▶ ekyc_nfc_reader  ──▶ icao_mrtd ──▶ icao_mrz
-         └──▶ ekyc_face_capture ─▶ ekyc_camera
+ekyc_demo ──▶ ekyc_sdk ──▶ ekyc_mrz_scanner ──▶ ekyc_camera, icao_mrz
+                      ├──▶ ekyc_nfc_reader  ──▶ icao_mrtd ──▶ icao_mrz
+                      └──▶ ekyc_face_capture ─▶ ekyc_camera
 ```
 
-Each step package can be used on its own: a host app that only needs NFC
-reading depends on `ekyc_nfc_reader` alone. Step packages never log,
+Most apps depend on `ekyc_sdk` and call `Ekyc.start`. Each step package
+can also be used on its own: a host app that only needs NFC reading
+depends on `ekyc_nfc_reader` alone. Step packages never log,
 never localize and never navigate. They take texts and styles as
 parameters and report results through callbacks or exceptions, so the
 host decides what to log, translate and show next.

@@ -2,10 +2,8 @@ import 'dart:typed_data';
 
 import 'package:ekyc_demo/kyc/domain/kyc_error.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_repository.dart';
-import 'package:ekyc_face_capture/ekyc_face_capture.dart';
-import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:equatable/equatable.dart';
-import 'package:icao_mrz/icao_mrz.dart';
 
 /// The verification flow as a state machine. Each state is one screen.
 sealed class KycFlowState extends Equatable {

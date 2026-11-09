@@ -11,6 +11,7 @@ workspace:
   - packages/ekyc_mrz_scanner
   - packages/ekyc_nfc_reader
   - packages/ekyc_face_capture
+  - packages/ekyc_sdk
   - apps/ekyc_demo
 
 dev_dependencies:

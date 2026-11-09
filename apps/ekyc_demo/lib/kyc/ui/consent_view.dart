@@ -1,6 +1,6 @@
 import 'package:ekyc_demo/kyc/flow/kyc_flow_cubit.dart';
-import 'package:ekyc_demo/kyc/ui/step_scaffold.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -21,17 +21,20 @@ class _ConsentViewState extends State<ConsentView> {
     final l = AppLocalizations.of(context);
     final cubit = context.read<KycFlowCubit>();
     final enabled = _accepted && !widget.loading;
-    return StepScaffold(
+    return EkycStepScaffold(
       title: l.consentTitle,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l.consentIntro, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 16),
-          InfoRow(icon: Icons.text_fields, text: l.consentItemMrz),
-          InfoRow(icon: Icons.nfc, text: l.consentItemChip),
-          InfoRow(icon: Icons.face, text: l.consentItemFace),
-          InfoRow(icon: Icons.delete_sweep_outlined, text: l.consentRetention),
+          EkycInfoRow(icon: Icons.text_fields, text: l.consentItemMrz),
+          EkycInfoRow(icon: Icons.nfc, text: l.consentItemChip),
+          EkycInfoRow(icon: Icons.face, text: l.consentItemFace),
+          EkycInfoRow(
+            icon: Icons.delete_sweep_outlined,
+            text: l.consentRetention,
+          ),
           const SizedBox(height: 8),
           CheckboxListTile(
             value: _accepted,

@@ -6,9 +6,7 @@ import 'package:ekyc_demo/kyc/domain/kyc_error.dart';
 import 'package:ekyc_demo/kyc/domain/kyc_repository.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_state.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_services.dart';
-import 'package:ekyc_face_capture/ekyc_face_capture.dart';
-import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
-import 'package:icao_mrz/icao_mrz.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 
 /// Loads the services for a run: real hardware or the demo document.
 typedef KycServicesLoader = Future<KycServices> Function({required bool demo});

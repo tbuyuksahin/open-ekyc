@@ -1,7 +1,7 @@
 import 'package:ekyc_demo/kyc/domain/kyc_repository.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_cubit.dart';
-import 'package:ekyc_demo/kyc/ui/step_scaffold.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,7 +31,7 @@ class ResultView extends StatelessWidget {
       ),
     };
     final theme = Theme.of(context);
-    return StepScaffold(
+    return EkycStepScaffold(
       title: l.appTitle,
       body: Column(
         children: [
@@ -42,7 +42,7 @@ class ResultView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(body, textAlign: TextAlign.center),
           const SizedBox(height: 24),
-          InfoRow(icon: Icons.delete_outline, text: l.resultDataErased),
+          EkycInfoRow(icon: Icons.delete_outline, text: l.resultDataErased),
         ],
       ),
       actions: [

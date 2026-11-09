@@ -1,4 +1,4 @@
-import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
+import 'package:ekyc_sdk/ekyc_sdk.dart';
 
 /// Failures the user can understand and act on.
 ///

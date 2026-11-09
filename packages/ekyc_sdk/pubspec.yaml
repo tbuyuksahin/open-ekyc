@@ -1,0 +1,29 @@
+name: ekyc_sdk
+description: >-
+  Drop-in identity verification for Flutter: one call runs MRZ scan, NFC
+  chip reading with Passive Authentication and selfie capture, or any
+  single step, with built-in English and Turkish texts and themable
+  overlays.
+version: 0.1.0-dev.1
+repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/ekyc_sdk
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
+
+dependencies:
+  ekyc_face_capture: ^0.1.0-dev.1
+  ekyc_mrz_scanner: ^0.1.0-dev.1
+  ekyc_nfc_reader: ^0.1.0-dev.1
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  ekyc_camera: ^0.1.0-dev.1
+  flutter_localizations:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  icao_mrtd: ^0.1.0-dev.1
