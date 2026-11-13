@@ -82,6 +82,21 @@ class ReviewView extends StatelessWidget {
               title: l.livenessChallengesPassed,
               body: l.livenessChallengesPassedBody,
             ),
+          if (state.crossCheck case final check?)
+            _Notice(
+              icon: check.allFound
+                  ? Icons.fact_check_outlined
+                  : Icons.rule_outlined,
+              title: check.allFound
+                  ? l.crossCheckMatch
+                  : l.crossCheckPartial(
+                      check.found.length,
+                      check.fields.length,
+                    ),
+              body: check.allFound
+                  ? l.crossCheckMatchBody
+                  : l.crossCheckPartialBody,
+            ),
           if (error != null)
             Card(
               color: Theme.of(context).colorScheme.errorContainer,

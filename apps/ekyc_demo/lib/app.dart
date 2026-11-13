@@ -23,7 +23,10 @@ class EkycApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const seed = Color(0xFF00696B);
     return BlocProvider(
-      create: (_) => KycFlowCubit(loadServices),
+      create: (_) => KycFlowCubit(
+        loadServices,
+        photographDocument: cameraAvailable,
+      ),
       child: MaterialApp(
         onGenerateTitle: (c) => AppLocalizations.of(c).appTitle,
         debugShowCheckedModeBanner: false,

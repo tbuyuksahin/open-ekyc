@@ -4,7 +4,6 @@ description: >-
   BAC, secure messaging, LDS data groups and Passive Authentication in pure Dart.
 version: 0.1.0-dev.1
 repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/icao_mrtd
-publish_to: none
 resolution: workspace
 
 environment:

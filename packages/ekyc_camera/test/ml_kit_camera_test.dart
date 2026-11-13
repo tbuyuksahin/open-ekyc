@@ -153,6 +153,34 @@ void main() {
       camera.dispose();
     });
 
+    test('delivers frames again after a picture or a pause', () async {
+      var frames = 0;
+      final camera = MlKitCamera(
+        lensDirection: CameraLensDirection.back,
+        onFrame: (_) async => frames++,
+      );
+      // Before the camera is open there is nothing to resume.
+      await camera.resumeProcessing();
+      await camera.start();
+      await camera.takePicture();
+      expect(platform.isStreaming, isFalse);
+      await camera.resumeProcessing();
+      expect(platform.isStreaming, isTrue);
+      platform.emitFrame();
+      await settle();
+      expect(frames, 1);
+
+      camera.stopProcessing();
+      platform.emitFrame();
+      await settle();
+      expect(frames, 1);
+      await camera.resumeProcessing();
+      platform.emitFrame();
+      await settle();
+      expect(frames, 2);
+      camera.dispose();
+    });
+
     test('resumes the stream when a picture fails', () async {
       final camera = MlKitCamera(
         lensDirection: CameraLensDirection.front,
@@ -313,5 +341,33 @@ void main() {
     final recorder = PictureRecorder();
     painter.paint(Canvas(recorder), const Size(100, 100));
     recorder.endRecording().dispose();
+  });
+
+  testWidgets('ShutterButton taps only while enabled', (tester) async {
+    var taps = 0;
+    Widget host(VoidCallback? onPressed) => MaterialApp(
+      home: Center(
+        child: ShutterButton(onPressed: onPressed, label: 'Shoot', size: 60),
+      ),
+    );
+    await tester.pumpWidget(host(null));
+    await tester.tap(find.bySemanticsLabel('Shoot'));
+    expect(taps, 0);
+    expect(tester.getSize(find.byType(Container)).width, 60);
+
+    await tester.pumpWidget(host(() => taps++));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Shoot'));
+    expect(taps, 1);
+  });
+
+  test('the fake camera can deliver a given frame', () async {
+    final platform = FakeCameraPlatform();
+    final frame = platform.onStreamedFrameAvailable(0).first;
+    platform.emitFrame(
+      size: const Size(2, 2),
+      bytes: Uint8List.fromList(List.filled(16, 7)),
+    );
+    expect((await frame).planes.single.bytes, everyElement(7));
   });
 }

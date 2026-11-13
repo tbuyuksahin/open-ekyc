@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:ekyc_document_capture/ekyc_document_capture.dart';
 import 'package:ekyc_face_capture/ekyc_face_capture.dart';
 import 'package:ekyc_mrz_scanner/ekyc_mrz_scanner.dart';
 import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
@@ -106,6 +107,21 @@ class EkycStrings {
     this.faceShutter = 'Take photo',
     this.faceModeAuto = 'Automatic',
     this.faceModeManual = 'Manual',
+    this.documentTitle = 'Photograph your document',
+    this.documentInstruction =
+        'Lay the document on a plain, well lit surface and hold the '
+        'phone above it. The photo is taken automatically.',
+    this.documentSideFront = 'Front',
+    this.documentSideBack = 'Back',
+    this.documentShowFront = 'Place the side with the photo inside the frame',
+    this.documentShowBack =
+        'Turn the card over and place the back inside the frame',
+    this.documentWrongSide = 'This is the other side. Turn the document over',
+    this.documentTooDark = 'Find more light',
+    this.documentGlare = 'Tilt the document to remove the reflection',
+    this.documentBlurry = 'Hold the phone steady until the text is sharp',
+    this.documentHoldStill = 'Hold still…',
+    this.documentShutter = 'Take photo',
   });
 
   /// English.
@@ -197,6 +213,20 @@ class EkycStrings {
     faceShutter: 'Fotoğraf çek',
     faceModeAuto: 'Otomatik',
     faceModeManual: 'Manuel',
+    documentTitle: 'Belgenizin fotoğrafını çekin',
+    documentInstruction:
+        'Belgeyi düz ve aydınlık bir zemine koyun, telefonu üzerinde '
+        'tutun. Fotoğraf otomatik çekilir.',
+    documentSideFront: 'Ön yüz',
+    documentSideBack: 'Arka yüz',
+    documentShowFront: 'Fotoğraflı yüzü çerçeveye yerleştirin',
+    documentShowBack: 'Kartı çevirin ve arka yüzü çerçeveye yerleştirin',
+    documentWrongSide: 'Bu diğer yüz. Belgeyi çevirin',
+    documentTooDark: 'Daha aydınlık bir yere geçin',
+    documentGlare: 'Yansımayı gidermek için belgeyi hafifçe eğin',
+    documentBlurry: 'Yazılar netleşene kadar telefonu sabit tutun',
+    documentHoldStill: 'Sabit tutun…',
+    documentShutter: 'Fotoğraf çek',
   );
 
   /// The built-in strings for [locale]; English when it is not Turkish.
@@ -398,6 +428,44 @@ class EkycStrings {
   /// Selfie step text: `faceModeManual`.
   final String faceModeManual;
 
+  // Document photo step.
+
+  /// Document photo step text: `documentTitle`.
+  final String documentTitle;
+
+  /// Document photo step text: `documentInstruction`.
+  final String documentInstruction;
+
+  /// Document photo step text: `documentSideFront`.
+  final String documentSideFront;
+
+  /// Document photo step text: `documentSideBack`.
+  final String documentSideBack;
+
+  /// Document photo step text: `documentShowFront`.
+  final String documentShowFront;
+
+  /// Document photo step text: `documentShowBack`.
+  final String documentShowBack;
+
+  /// Document photo step text: `documentWrongSide`.
+  final String documentWrongSide;
+
+  /// Document photo step text: `documentTooDark`.
+  final String documentTooDark;
+
+  /// Document photo step text: `documentGlare`.
+  final String documentGlare;
+
+  /// Document photo step text: `documentBlurry`.
+  final String documentBlurry;
+
+  /// Document photo step text: `documentHoldStill`.
+  final String documentHoldStill;
+
+  /// Document photo step text: `documentShutter`.
+  final String documentShutter;
+
   /// The message for a chip read [error].
   String error(ChipReadError error) => switch (error) {
     ChipReadError.nfcNotSupported => errorNfcNotSupported,
@@ -445,6 +513,23 @@ class EkycStrings {
     FaceChallenge.lookDown => faceChallengeLookDown,
     FaceChallenge.smile => faceChallengeSmile,
     FaceChallenge.blink => faceChallengeBlink,
+  };
+
+  /// The guidance for a document photo [hint] while capturing [side].
+  String documentHint(DocumentHint hint, DocumentSide side) => switch (hint) {
+    DocumentHint.noDocument =>
+      side == DocumentSide.front ? documentShowFront : documentShowBack,
+    DocumentHint.wrongSide => documentWrongSide,
+    DocumentHint.tooDark => documentTooDark,
+    DocumentHint.glare => documentGlare,
+    DocumentHint.blurry => documentBlurry,
+    DocumentHint.holdStill => documentHoldStill,
+  };
+
+  /// The short name of a document [side].
+  String documentSide(DocumentSide side) => switch (side) {
+    DocumentSide.front => documentSideFront,
+    DocumentSide.back => documentSideBack,
   };
 
   /// Labels for the manual MRZ form.
@@ -534,6 +619,18 @@ class EkycStrings {
     String? faceShutter,
     String? faceModeAuto,
     String? faceModeManual,
+    String? documentTitle,
+    String? documentInstruction,
+    String? documentSideFront,
+    String? documentSideBack,
+    String? documentShowFront,
+    String? documentShowBack,
+    String? documentWrongSide,
+    String? documentTooDark,
+    String? documentGlare,
+    String? documentBlurry,
+    String? documentHoldStill,
+    String? documentShutter,
   }) => EkycStrings(
     cancel: cancel ?? this.cancel,
     retry: retry ?? this.retry,
@@ -599,5 +696,17 @@ class EkycStrings {
     faceShutter: faceShutter ?? this.faceShutter,
     faceModeAuto: faceModeAuto ?? this.faceModeAuto,
     faceModeManual: faceModeManual ?? this.faceModeManual,
+    documentTitle: documentTitle ?? this.documentTitle,
+    documentInstruction: documentInstruction ?? this.documentInstruction,
+    documentSideFront: documentSideFront ?? this.documentSideFront,
+    documentSideBack: documentSideBack ?? this.documentSideBack,
+    documentShowFront: documentShowFront ?? this.documentShowFront,
+    documentShowBack: documentShowBack ?? this.documentShowBack,
+    documentWrongSide: documentWrongSide ?? this.documentWrongSide,
+    documentTooDark: documentTooDark ?? this.documentTooDark,
+    documentGlare: documentGlare ?? this.documentGlare,
+    documentBlurry: documentBlurry ?? this.documentBlurry,
+    documentHoldStill: documentHoldStill ?? this.documentHoldStill,
+    documentShutter: documentShutter ?? this.documentShutter,
   );
 }

@@ -4,7 +4,6 @@ description: >-
   MRZ lines from OCR text and build the BAC key input for ePassport chips.
 version: 0.1.0-dev.1
 repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/icao_mrz
-publish_to: none
 resolution: workspace
 
 environment:

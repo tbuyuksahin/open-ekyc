@@ -1,8 +1,8 @@
 # ekyc_sdk
 
 Drop-in identity verification for Flutter. One call runs the MRZ scan, the
-NFC chip read (with Passive Authentication) and the selfie, or any single
-step. English and Turkish texts are built in, and every overlay can be
+NFC chip read (with Passive Authentication) and the selfie, optionally
+with photos of the document, or any single step. English and Turkish texts are built in, and every overlay can be
 themed.
 
 ```dart
@@ -18,10 +18,10 @@ if (result != null) {
 | Level | API | What the user sees |
 | --- | --- | --- |
 | Whole flow | `Ekyc.start(context, config: ...)` | The SDK's screens for every step in `config.steps` |
-| One step | `Ekyc.scanMrz`, `Ekyc.readChip`, `Ekyc.captureSelfie` | The SDK's screen for that step only |
+| One step | `Ekyc.captureDocument`, `Ekyc.scanMrz`, `Ekyc.readChip`, `Ekyc.captureSelfie` | The SDK's screen for that step only |
 | Embedded flow | `EkycFlow(onCompleted: ...)` | The same screens inside your own page or navigator |
-| One screen | `EkycMrzScreen`, `EkycNfcScreen`, `EkycFaceScreen` | A step screen that you drive with your own state |
-| Bare widgets | `MrzScanner`, `ManualMrzForm`, `NfcScanOverlay`, `ChipReader`, `FaceCapture` | Only the camera area or illustration, inside your own layout |
+| One screen | `EkycDocumentScreen`, `EkycMrzScreen`, `EkycNfcScreen`, `EkycFaceScreen` | A step screen that you drive with your own state |
+| Bare widgets | `DocumentCapture`, `MrzScanner`, `ManualMrzForm`, `NfcScanOverlay`, `ChipReader`, `FaceCapture` | Only the camera area or illustration, inside your own layout |
 
 The SDK re-exports the step packages, so one import covers every level.
 
@@ -36,6 +36,9 @@ final DocumentData? document = await Ekyc.readChip(context, mrzKey: key!);
 
 // Only the selfie.
 final EkycResult? selfie = await Ekyc.captureSelfie(context);
+
+// Only the photos of the document, front and back.
+final DocumentCaptureResult? photos = await Ekyc.captureDocument(context);
 ```
 
 Each call returns `null` when the user closes the screen.
@@ -60,13 +63,15 @@ await Ekyc.start(
 );
 ```
 
-* **`steps`** selects the steps to run. NFC without the MRZ step needs
-  `mrzKey`.
+* **`steps`** selects the steps to run. The default is MRZ, NFC and
+  selfie (`EkycStep.standard`). NFC without the MRZ step needs `mrzKey`.
+* **`document`** configures the optional document photo step: ID card or
+  passport, which sides, automatic or manual capture.
 * **`strings`** defaults to the built-in texts for the app's locale
   (Turkish for `tr`, English otherwise). Use `copyWith` to change single
   texts, or pass your own `EkycStrings` for another language.
 * **`theme`** holds one overlay style per step. `EkycTheme.brand` sets
-  your colors on all three.
+  your colors on all of them.
 * **`trustStore`** holds the CSCA certificates. Without it a genuine chip
   is reported as `untrusted`, not `verified`.
 * **`nfcSession`** is the NFC transport. Pass a `VirtualNfcSession` from
@@ -74,11 +79,34 @@ await Ekyc.start(
   without hardware.
 * **`liveness`** plugs in a certified liveness provider.
 
+## Photographing the document
+
+```dart
+final result = await Ekyc.start(
+  context,
+  config: const EkycConfig(
+    steps: [EkycStep.document, ...EkycStep.standard],
+  ),
+);
+```
+
+The document step runs first. The user shows the front, then the back.
+When the MRZ is read on the way, the MRZ step is skipped and the chip is
+read straight away; if the chip rejects that key, the MRZ form opens with
+the values filled in. Set `EkycDocumentOptions.skipMrzWhenRead` to `false`
+to always show the MRZ step.
+
+`result.documentPhotos` has the photos, and `result.crossCheck` says
+which printed details (number, names, dates) were found in the photo of
+the front, compared with the chip. The cross-check is advisory: OCR can
+miss text, and it does not detect forged or copied documents.
+
 ## The result
 
 `EkycResult` has the `mrzKey`, the `document` (parsed data, the on-device
 Passive Authentication result and the raw chip files), the `selfie`, the
-completed `challenges` and the `liveness` outcome.
+completed `challenges` and the `liveness` outcome, plus `documentPhotos`
+and `crossCheck` when the document was photographed.
 
 * Send `document.rawFiles` to your server and repeat Passive
   Authentication there. The check on the device is advisory, because a

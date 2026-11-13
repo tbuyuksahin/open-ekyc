@@ -1,3 +1,4 @@
+import 'package:ekyc_document_capture/ekyc_document_capture.dart';
 import 'package:ekyc_face_capture/ekyc_face_capture.dart';
 import 'package:ekyc_mrz_scanner/ekyc_mrz_scanner.dart';
 import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
@@ -8,6 +9,12 @@ import 'package:flutter/foundation.dart';
 @immutable
 sealed class EkycStage {
   const EkycStage();
+}
+
+/// Photographing the document.
+final class EkycDocumentStage extends EkycStage {
+  /// Creates the stage.
+  const EkycDocumentStage();
 }
 
 /// Collecting the MRZ key.
@@ -84,7 +91,9 @@ class EkycFlowController extends ChangeNotifier {
         'EkycStep.nfc without EkycStep.mrz needs EkycConfig.mrzKey',
       );
     }
-    if (config.has(EkycStep.mrz)) {
+    if (config.has(EkycStep.document)) {
+      _stage = const EkycDocumentStage();
+    } else if (config.has(EkycStep.mrz)) {
       _stage = EkycMrzStage(prefill: config.mrzKey);
     } else if (config.has(EkycStep.nfc)) {
       _stage = EkycChipStage(mrzKey: config.mrzKey!);
@@ -103,6 +112,7 @@ class EkycFlowController extends ChangeNotifier {
   late EkycStage _stage;
   MrzKey? _key;
   DocumentData? _document;
+  DocumentCaptureResult? _photos;
   bool _disposed = false;
   bool _handedOver = false;
 
@@ -115,14 +125,32 @@ class EkycFlowController extends ChangeNotifier {
     if (stage is EkycChipStage) await _readChip(stage.mrzKey);
   }
 
+  /// The document photo step produced [capture].
+  ///
+  /// When the MRZ was read on the way and
+  /// [EkycDocumentOptions.skipMrzWhenRead] is set, the MRZ step is
+  /// skipped.
+  Future<void> documentCaptured(DocumentCaptureResult capture) async {
+    if (_disposed) {
+      capture.wipe();
+      return;
+    }
+    _photos?.wipe();
+    _photos = capture;
+    final mrz = capture.mrz;
+    if (mrz != null &&
+        config.document.skipMrzWhenRead &&
+        config.has(EkycStep.mrz)) {
+      await submitMrz(mrz.key);
+    } else {
+      await _advanceFrom(EkycStep.document);
+    }
+  }
+
   /// The MRZ step produced [key].
   Future<void> submitMrz(MrzKey key) async {
     _key = key;
-    if (config.has(EkycStep.nfc)) {
-      await _readChip(key);
-    } else {
-      _advanceFrom(EkycStep.mrz);
-    }
+    await _advanceFrom(EkycStep.mrz);
   }
 
   /// Reads the chip again with the same key.
@@ -175,7 +203,7 @@ class EkycFlowController extends ChangeNotifier {
         return;
       }
       _document = document;
-      _advanceFrom(EkycStep.nfc);
+      await _advanceFrom(EkycStep.nfc);
     } on ChipReadException catch (e) {
       if (e.error == ChipReadError.wrongMrz && config.has(EkycStep.mrz)) {
         _set(EkycMrzStage(prefill: key, error: e.error));
@@ -185,12 +213,30 @@ class EkycFlowController extends ChangeNotifier {
     }
   }
 
-  void _advanceFrom(EkycStep done) {
-    if (done != EkycStep.face && config.has(EkycStep.face)) {
-      _set(const EkycFaceStage());
-    } else {
-      _finish();
+  static const List<EkycStep> _order = [
+    EkycStep.document,
+    EkycStep.mrz,
+    EkycStep.nfc,
+    EkycStep.face,
+  ];
+
+  Future<void> _advanceFrom(EkycStep done) async {
+    for (final step in _order.skip(_order.indexOf(done) + 1)) {
+      if (!config.has(step)) continue;
+      switch (step) {
+        case EkycStep.mrz:
+          _set(EkycMrzStage(prefill: config.mrzKey));
+        case EkycStep.nfc:
+          // The constructor guarantees a key when there is no MRZ step.
+          await _readChip((_key ?? config.mrzKey)!);
+        case EkycStep.face:
+          _set(const EkycFaceStage());
+        case EkycStep.document:
+          continue;
+      }
+      return;
     }
+    _finish();
   }
 
   void _finish({
@@ -199,11 +245,19 @@ class EkycFlowController extends ChangeNotifier {
     LivenessOutcome liveness = LivenessOutcome.notPerformed,
   }) {
     _handedOver = true;
+    final document = _document;
+    final photos = _photos;
     _set(
       EkycDoneStage(
         EkycResult(
           mrzKey: _key,
-          document: _document,
+          document: document,
+          documentPhotos: photos,
+          crossCheck: photos?.crossCheck(
+            expected: document == null
+                ? null
+                : DocumentFields.fromMrz(document.mrz),
+          ),
           selfie: selfie,
           challenges: challenges,
           liveness: liveness,
@@ -222,8 +276,12 @@ class EkycFlowController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     // Once the result was handed over, the host owns the data.
-    if (!_handedOver) _document?.wipe();
+    if (!_handedOver) {
+      _document?.wipe();
+      _photos?.wipe();
+    }
     _document = null;
+    _photos = null;
     super.dispose();
   }
 }

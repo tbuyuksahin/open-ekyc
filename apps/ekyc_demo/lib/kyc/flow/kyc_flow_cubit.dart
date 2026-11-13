@@ -16,11 +16,17 @@ typedef KycServicesLoader = Future<KycServices> Function({required bool demo});
 /// Personal data lives only in states and is wiped on submit, restart and
 /// close, so abandoning the flow at any point leaves nothing behind.
 class KycFlowCubit extends Cubit<KycFlowState> {
-  KycFlowCubit(this._load) : super(const ConsentStep());
+  KycFlowCubit(this._load, {this.photographDocument = false})
+    : super(const ConsentStep());
 
   final KycServicesLoader _load;
+
+  /// Whether the flow starts by photographing the document. Skipped in
+  /// demo mode, which has no physical document.
+  final bool photographDocument;
   KycServices? _services;
   DocumentData? _document;
+  DocumentCaptureResult? _photos;
   Uint8List? _selfie;
 
   KycServices get _s => _services ?? (throw StateError('Flow not started'));
@@ -30,12 +36,40 @@ class KycFlowCubit extends Cubit<KycFlowState> {
     emit(const ConsentStep(loading: true));
     _services = await _load(demo: demo);
     AppLog.event('flow_started', {'demo': demo});
-    emit(MrzStep(prefill: _s.demoKey, isDemo: _s.isDemo));
+    if (photographDocument && !_s.isDemo) {
+      emit(const DocumentStep());
+    } else {
+      emit(MrzStep(prefill: _s.demoKey, isDemo: _s.isDemo));
+    }
+  }
+
+  /// The document was photographed. When its MRZ was read on the way, the
+  /// chip is read straight away; otherwise the MRZ step follows.
+  Future<void> documentCaptured(
+    DocumentCaptureResult capture,
+    ChipReadMessages messages,
+  ) async {
+    if (isClosed || state is! DocumentStep) {
+      capture.wipe();
+      return;
+    }
+    _photos?.wipe();
+    _photos = capture;
+    final mrz = capture.mrz;
+    AppLog.event('document_captured', {
+      'sides': capture.images.length,
+      'mrz': mrz != null,
+    });
+    if (mrz == null) {
+      emit(const MrzStep());
+    } else {
+      await readChip(mrz.key, messages);
+    }
   }
 
   /// Reads the chip with [key].
   Future<void> readChip(MrzKey key, ChipReadMessages messages) async {
-    _wipe();
+    _wipeChip();
     emit(ChipStep(key: key, step: ChipReadStep.waitingForCard));
     try {
       final document = await _s.chipReader.read(
@@ -98,8 +132,21 @@ class KycFlowCubit extends Cubit<KycFlowState> {
         checked == LivenessOutcome.notPerformed && challenges.isNotEmpty
         ? LivenessOutcome.challengesPassed
         : checked;
-    AppLog.event('face_captured', {'liveness': liveness.name});
-    emit(ReviewStep(document: document, selfie: copy, liveness: liveness));
+    final crossCheck = _photos?.crossCheck(
+      expected: DocumentFields.fromMrz(document.mrz),
+    );
+    AppLog.event('face_captured', {
+      'liveness': liveness.name,
+      'printed_fields_found': ?crossCheck?.found.length,
+    });
+    emit(
+      ReviewStep(
+        document: document,
+        selfie: copy,
+        liveness: liveness,
+        crossCheck: crossCheck,
+      ),
+    );
   }
 
   void retakeFace() {
@@ -121,6 +168,7 @@ class KycFlowCubit extends Cubit<KycFlowState> {
           session: session,
           chipFiles: current.document.rawFiles,
           selfie: current.selfie,
+          documentPhotos: _photos?.images ?? const {},
           liveness: current.liveness,
           clientPassiveAuth: current.document.passiveAuth.status,
         ),
@@ -147,10 +195,16 @@ class KycFlowCubit extends Cubit<KycFlowState> {
     _selfie = null;
   }
 
-  void _wipe() {
+  void _wipeChip() {
     _document?.wipe();
     _document = null;
     _clearSelfie();
+  }
+
+  void _wipe() {
+    _wipeChip();
+    _photos?.wipe();
+    _photos = null;
   }
 
   @override

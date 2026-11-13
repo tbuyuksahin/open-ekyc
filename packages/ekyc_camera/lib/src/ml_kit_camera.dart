@@ -76,6 +76,15 @@ class MlKitCamera extends ChangeNotifier with WidgetsBindingObserver {
   /// Stops handing frames to [onFrame]; the preview stays live.
   void stopProcessing() => _processing = false;
 
+  /// Hands frames to [onFrame] again after [stopProcessing] or a
+  /// successful [takePicture], which leaves the frame stream stopped.
+  Future<void> resumeProcessing() async {
+    _processing = true;
+    final controller = _controller;
+    if (controller == null || _capturing) return;
+    if (!controller.value.isStreamingImages) await _startStream(controller);
+  }
+
   /// Takes a full resolution photo and returns its bytes.
   ///
   /// The file the camera plugin writes is deleted right after it is read.

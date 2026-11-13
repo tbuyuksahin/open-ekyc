@@ -8,13 +8,16 @@ apps/ekyc_demo            Example host: consent, review and submission around th
  ├─ kyc/data              FakeKycRepository, DemoDocument, CSCA loader
  └─ kyc/ui                Consent, review and result screens; SDK screens for the steps
 
-packages/ekyc_sdk           Ekyc.start / scanMrz / readChip / captureSelfie, EkycFlow,
+packages/ekyc_sdk           Ekyc.start / captureDocument / scanMrz / readChip / captureSelfie, EkycFlow,
                             EkycFlowController, step screens, EkycStrings (EN/TR), EkycTheme
 packages/ekyc_mrz_scanner   MrzScanner, MrzOverlay(+Style), ManualMrzForm, MrzInput
 packages/ekyc_nfc_reader    ChipReader, NfcSession, FlutterNfcSession, DocumentData,
                             NfcScanOverlay(+Style), testing: VirtualNfcSession
+packages/ekyc_document_capture  DocumentCapture, FrameAnalyzer, DocumentQualityGate,
+                            DocumentOverlay(+Style), DocumentCrossCheck
 packages/ekyc_face_capture  FaceCapture, FaceQualityGate, FaceOverlay(+Style), LivenessCheck
-packages/ekyc_camera        MlKitCamera, MlKitCameraView, ScrimPainter, testing: FakeCameraPlatform
+packages/ekyc_camera        MlKitCamera, MlKitCameraView, ScrimPainter, ShutterButton,
+                            testing: FakeCameraPlatform
 packages/icao_mrtd          ApduTransceiver ← MrtdReader (BAC + SM) → LDS parsers → Passive Authentication
 packages/icao_mrz           MRZ parsing, check digits, OCR recovery, BAC key input
 ```
@@ -22,6 +25,7 @@ packages/icao_mrz           MRZ parsing, check digits, OCR recovery, BAC key inp
 ```text
 ekyc_demo ──▶ ekyc_sdk ──▶ ekyc_mrz_scanner ──▶ ekyc_camera, icao_mrz
                       ├──▶ ekyc_nfc_reader  ──▶ icao_mrtd ──▶ icao_mrz
+                      ├──▶ ekyc_document_capture ──▶ ekyc_camera, icao_mrz
                       └──▶ ekyc_face_capture ─▶ ekyc_camera
 ```
 

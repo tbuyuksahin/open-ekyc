@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:ekyc_document_capture/ekyc_document_capture.dart';
 import 'package:ekyc_mrz_scanner/ekyc_mrz_scanner.dart';
 import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:ekyc_sdk/src/config.dart';
 import 'package:ekyc_sdk/src/controller.dart';
+import 'package:ekyc_sdk/src/document_screen.dart';
 import 'package:ekyc_sdk/src/face_screen.dart';
 import 'package:ekyc_sdk/src/mrz_screen.dart';
 import 'package:ekyc_sdk/src/nfc_screen.dart';
@@ -82,6 +84,14 @@ class _EkycFlowState extends State<EkycFlow> {
     final cancel = widget.onCancelled;
     final stage = _controller.stage;
     final child = switch (stage) {
+      EkycDocumentStage() => EkycDocumentScreen(
+        key: const ValueKey('document'),
+        strings: s,
+        options: config.document,
+        style: config.theme.document,
+        onCaptured: _controller.documentCaptured,
+        onCancel: cancel,
+      ),
       EkycMrzStage(:final prefill, :final error) => EkycMrzScreen(
         key: ValueKey(('mrz', error)),
         strings: s,
@@ -152,6 +162,19 @@ abstract final class Ekyc {
       ),
     ),
   );
+
+  /// Only the document photo step: returns the photos, the text read on
+  /// the front and the MRZ when it was in view.
+  static Future<DocumentCaptureResult?> captureDocument(
+    BuildContext context, {
+    EkycConfig config = const EkycConfig(),
+  }) async {
+    final result = await start(
+      context,
+      config: config.copyWith(steps: const [EkycStep.document]),
+    );
+    return result?.documentPhotos;
+  }
 
   /// Only the MRZ step: returns the chip access key from the camera or
   /// the manual form.

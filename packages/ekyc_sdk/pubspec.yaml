@@ -6,7 +6,6 @@ description: >-
   overlays.
 version: 0.1.0-dev.1
 repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/ekyc_sdk
-publish_to: none
 resolution: workspace
 
 environment:
@@ -14,6 +13,7 @@ environment:
   flutter: ">=3.44.0"
 
 dependencies:
+  ekyc_document_capture: ^0.1.0-dev.1
   ekyc_face_capture: ^0.1.0-dev.1
   ekyc_mrz_scanner: ^0.1.0-dev.1
   ekyc_nfc_reader: ^0.1.0-dev.1

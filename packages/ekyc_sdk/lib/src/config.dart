@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ekyc_document_capture/ekyc_document_capture.dart';
 import 'package:ekyc_face_capture/ekyc_face_capture.dart';
 import 'package:ekyc_mrz_scanner/ekyc_mrz_scanner.dart';
 import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
@@ -8,6 +9,10 @@ import 'package:flutter/material.dart';
 
 /// A step of the verification flow.
 enum EkycStep {
+  /// Photograph the document and compare its printed text with the MRZ
+  /// or the chip.
+  document,
+
   /// Scan or type the MRZ key that opens the chip.
   mrz,
 
@@ -15,10 +20,13 @@ enum EkycStep {
   nfc,
 
   /// Take a selfie.
-  face,
+  face;
+
+  /// The default flow: MRZ, NFC, then selfie.
+  static const List<EkycStep> standard = [mrz, nfc, face];
 }
 
-/// Overlay styles of the three steps.
+/// Overlay styles of the steps.
 @immutable
 class EkycTheme {
   /// Creates a theme from individual overlay styles.
@@ -26,6 +34,7 @@ class EkycTheme {
     this.mrz = const MrzOverlayStyle(),
     this.nfc = const NfcOverlayStyle(),
     this.face = const FaceOverlayStyle(),
+    this.document = const DocumentOverlayStyle(),
   });
 
   /// A theme that uses [primary] for guidance and [success] for completed
@@ -37,6 +46,7 @@ class EkycTheme {
     mrz: MrzOverlayStyle(accentColor: primary, successColor: success),
     nfc: NfcOverlayStyle(accentColor: primary, successColor: success),
     face: FaceOverlayStyle(challengeColor: primary, readyColor: success),
+    document: DocumentOverlayStyle(readyColor: primary, successColor: success),
   );
 
   /// MRZ scanner overlay.
@@ -47,6 +57,40 @@ class EkycTheme {
 
   /// Selfie overlay.
   final FaceOverlayStyle face;
+
+  /// Document photo overlay.
+  final DocumentOverlayStyle document;
+}
+
+/// How the document photo step behaves.
+@immutable
+class EkycDocumentOptions {
+  /// Creates options; by default both sides of an ID card are
+  /// photographed automatically.
+  const EkycDocumentOptions({
+    this.kind = DocumentKind.idCard,
+    this.sides,
+    this.captureMode = DocumentCaptureMode.auto,
+    this.allowModeSwitch = false,
+    this.skipMrzWhenRead = true,
+  });
+
+  /// The document being photographed.
+  final DocumentKind kind;
+
+  /// The sides to photograph; every side of [kind] when `null`.
+  final List<DocumentSide>? sides;
+
+  /// Automatic or manual photo.
+  final DocumentCaptureMode captureMode;
+
+  /// Whether the user can switch between automatic and manual capture.
+  final bool allowModeSwitch;
+
+  /// Whether the MRZ step is skipped when the MRZ was already read while
+  /// photographing the document. If the chip then rejects the key, the
+  /// MRZ step opens with the values filled in.
+  final bool skipMrzWhenRead;
 }
 
 /// How the selfie step behaves.
@@ -89,12 +133,13 @@ class EkycFaceOptions {
 /// What to run and how it looks.
 @immutable
 class EkycConfig {
-  /// Creates a configuration; the default runs all three steps.
+  /// Creates a configuration; the default runs MRZ, NFC and selfie.
   const EkycConfig({
-    this.steps = EkycStep.values,
+    this.steps = EkycStep.standard,
     this.strings,
     this.theme = const EkycTheme(),
     this.face = const EkycFaceOptions(),
+    this.document = const EkycDocumentOptions(),
     this.trustStore,
     this.nfcSession = const FlutterNfcSession(),
     this.liveness = const NoLivenessCheck(),
@@ -102,7 +147,8 @@ class EkycConfig {
     this.startWithCamera = true,
   });
 
-  /// The steps to run, in the order MRZ, NFC, selfie.
+  /// The steps to run. They always run in the order document photo,
+  /// MRZ, NFC, selfie, whatever the order of this list.
   final List<EkycStep> steps;
 
   /// Texts; the built-in ones for the app's locale when `null`.
@@ -113,6 +159,9 @@ class EkycConfig {
 
   /// Selfie options.
   final EkycFaceOptions face;
+
+  /// Document photo options.
+  final EkycDocumentOptions document;
 
   /// Trusted CSCA certificates for Passive Authentication. Without them a
   /// genuine chip is reported as `untrusted`, not `verified`.
@@ -141,6 +190,7 @@ class EkycConfig {
     EkycStrings? strings,
     EkycTheme? theme,
     EkycFaceOptions? face,
+    EkycDocumentOptions? document,
     CscaStore? trustStore,
     NfcSession? nfcSession,
     LivenessCheck? liveness,
@@ -151,6 +201,7 @@ class EkycConfig {
     strings: strings ?? this.strings,
     theme: theme ?? this.theme,
     face: face ?? this.face,
+    document: document ?? this.document,
     trustStore: trustStore ?? this.trustStore,
     nfcSession: nfcSession ?? this.nfcSession,
     liveness: liveness ?? this.liveness,
@@ -168,6 +219,8 @@ class EkycResult {
   EkycResult({
     this.mrzKey,
     this.document,
+    this.documentPhotos,
+    this.crossCheck,
     this.selfie,
     this.challenges = const [],
     this.liveness = LivenessOutcome.notPerformed,
@@ -180,6 +233,15 @@ class EkycResult {
   /// your server must re-verify.
   final DocumentData? document;
 
+  /// The photos of the document from the document photo step.
+  final DocumentCaptureResult? documentPhotos;
+
+  /// Whether the text printed on the front agrees with the chip (or,
+  /// without a chip read, with the MRZ). Advisory: OCR can miss text, and
+  /// only the chip signature proves the data. `null` when there was
+  /// nothing to compare.
+  final DocumentCrossCheck? crossCheck;
+
   /// JPEG bytes of the selfie.
   final Uint8List? selfie;
 
@@ -190,9 +252,11 @@ class EkycResult {
   /// [LivenessOutcome.challengesPassed], never as live.
   final LivenessOutcome liveness;
 
-  /// Overwrites the chip data and the selfie with zeros.
+  /// Overwrites the chip data, the document photos and the selfie with
+  /// zeros.
   void wipe() {
     document?.wipe();
+    documentPhotos?.wipe();
     final bytes = selfie;
     if (bytes != null) bytes.fillRange(0, bytes.length, 0);
   }

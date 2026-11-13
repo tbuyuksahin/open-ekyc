@@ -5,7 +5,6 @@ description: >-
   entry form that builds the chip access key.
 version: 0.1.0-dev.1
 repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/ekyc_mrz_scanner
-publish_to: none
 resolution: workspace
 
 environment:

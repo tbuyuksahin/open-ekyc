@@ -16,7 +16,7 @@ void main() {
   setUpAll(() => doc = TestDocument());
 
   EkycConfig config({
-    List<EkycStep> steps = EkycStep.values,
+    List<EkycStep> steps = EkycStep.standard,
     MrzKey? mrzKey,
     NfcFailure? connectFailure,
     Map<LdsFile, Uint8List>? files,
@@ -168,5 +168,138 @@ void main() {
     c.dispose();
     await reading;
     expect(c.stage, isNot(isA<EkycDoneStage>()));
+  });
+
+  group('document photo step', () {
+    const all = [
+      EkycStep.document,
+      EkycStep.mrz,
+      EkycStep.nfc,
+      EkycStep.face,
+    ];
+
+    DocumentCaptureResult photos({bool withMrz = true}) =>
+        DocumentCaptureResult(
+          kind: DocumentKind.passport,
+          images: {
+            DocumentSide.front: Uint8List.fromList([9, 9, 9]),
+          },
+          frontText: const ['ERIKSSON', 'ANNA MARIA', 'L898902C3'],
+          mrz: withMrz ? Mrz.parse(specimenMrz) : null,
+        );
+
+    test('comes first, and its MRZ opens the chip without typing', () async {
+      final c = EkycFlowController(config(steps: all));
+      expect(c.stage, isA<EkycDocumentStage>());
+      await c.start();
+      final capture = photos();
+      await c.documentCaptured(capture);
+      expect(c.stage, isA<EkycFaceStage>());
+
+      await c.faceCaptured(selfie);
+      final result = (c.stage as EkycDoneStage).result;
+      expect(result.mrzKey, specimenKey);
+      expect(result.documentPhotos, same(capture));
+      expect(result.document!.passiveAuth.status, PassiveAuthStatus.verified);
+      // Compared with the chip: number and names are printed, dates not.
+      expect(result.crossCheck!.found, [
+        DocumentField.documentNumber,
+        DocumentField.surname,
+        DocumentField.givenNames,
+      ]);
+      expect(result.crossCheck!.missing, [
+        DocumentField.dateOfBirth,
+        DocumentField.dateOfExpiry,
+      ]);
+
+      final front = capture.front!;
+      result.wipe();
+      expect(front, [0, 0, 0]);
+    });
+
+    test(
+      'asks for the MRZ when it was not read or must be confirmed',
+      () async {
+        final unread = EkycFlowController(config(steps: all));
+        await unread.documentCaptured(photos(withMrz: false));
+        expect(unread.stage, isA<EkycMrzStage>());
+
+        final confirm = EkycFlowController(
+          config(steps: all).copyWith(
+            document: const EkycDocumentOptions(skipMrzWhenRead: false),
+          ),
+        );
+        await confirm.documentCaptured(photos());
+        expect(confirm.stage, isA<EkycMrzStage>());
+      },
+    );
+
+    test('a key the chip rejects goes to the MRZ step', () async {
+      final c = EkycFlowController(config(steps: all));
+      await c.documentCaptured(
+        DocumentCaptureResult(
+          kind: DocumentKind.idCard,
+          images: const {},
+          mrz: Mrz.parse(const [
+            'I<UTOD231458907<<<<<<<<<<<<<<<',
+            '7408122F1204159UTO<<<<<<<<<<<6',
+            'ERIKSSON<<ANNA<MARIA<<<<<<<<<<',
+          ]),
+        ),
+      );
+      final stage = c.stage as EkycMrzStage;
+      expect(stage.error, ChipReadError.wrongMrz);
+      expect(stage.prefill!.documentNumber, 'D23145890');
+    });
+
+    test('on its own it checks the front against its own MRZ', () async {
+      final c = EkycFlowController(
+        config(steps: const [EkycStep.document]),
+      );
+      await c.documentCaptured(photos());
+      final result = (c.stage as EkycDoneStage).result;
+      expect(result.document, isNull);
+      expect(result.mrzKey, isNull);
+      expect(result.crossCheck!.fields[DocumentField.surname], isTrue);
+
+      final bare = EkycFlowController(
+        config(steps: const [EkycStep.document]),
+      );
+      await bare.documentCaptured(photos(withMrz: false));
+      expect((bare.stage as EkycDoneStage).result.crossCheck, isNull);
+    });
+
+    test('without an MRZ step the given key reads the chip', () async {
+      final c = EkycFlowController(
+        config(
+          steps: const [EkycStep.document, EkycStep.nfc],
+          mrzKey: specimenKey,
+        ),
+      );
+      expect(c.stage, isA<EkycDocumentStage>());
+      await c.documentCaptured(photos(withMrz: false));
+      final result = (c.stage as EkycDoneStage).result;
+      expect(result.document, isNotNull);
+      expect(result.crossCheck, isNotNull);
+    });
+
+    test('photos are wiped when the flow is abandoned', () async {
+      final c = EkycFlowController(config(steps: all));
+      final first = photos(withMrz: false);
+      final second = photos(withMrz: false);
+      await c.documentCaptured(first);
+      final a = first.front!;
+      // A second capture replaces and wipes the first.
+      await c.documentCaptured(second);
+      expect(a, [0, 0, 0]);
+      final b = second.front!;
+      c.dispose();
+      expect(b, [0, 0, 0]);
+
+      final late = photos();
+      final bytes = late.front!;
+      await c.documentCaptured(late);
+      expect(bytes, [0, 0, 0]);
+    });
   });
 }

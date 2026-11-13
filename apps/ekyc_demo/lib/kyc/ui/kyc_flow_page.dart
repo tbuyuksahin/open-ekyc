@@ -14,8 +14,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Renders the current step of the flow.
 ///
-/// Consent, review and result are this app's own screens; the MRZ, NFC
-/// and selfie steps are the SDK's screens, driven by [KycFlowCubit].
+/// Consent, review and result are this app's own screens. The document
+/// photo, MRZ, NFC and selfie steps are the SDK's screens, driven by
+/// [KycFlowCubit].
 class KycFlowPage extends StatelessWidget {
   const KycFlowPage({this.cameraAvailable = true, super.key});
 
@@ -40,6 +41,13 @@ class KycFlowPage extends StatelessWidget {
       builder: (context, state) {
         final child = switch (state) {
           ConsentStep(:final loading) => ConsentView(loading: loading),
+          DocumentStep() => EkycDocumentScreen(
+            strings: s,
+            options: const EkycDocumentOptions(allowModeSwitch: true),
+            onCaptured: (result) =>
+                unawaited(cubit.documentCaptured(result, s.chipMessages)),
+            onCancel: cubit.restart,
+          ),
           MrzStep(:final prefill, :final error, :final isDemo) => EkycMrzScreen(
             key: ValueKey(('mrz', error)),
             strings: s,

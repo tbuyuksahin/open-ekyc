@@ -23,6 +23,11 @@ final class ConsentStep extends KycFlowState {
   List<Object?> get props => [loading];
 }
 
+/// Photographing the front and back of the document.
+final class DocumentStep extends KycFlowState {
+  const DocumentStep();
+}
+
 /// Collects the MRZ key by camera or by hand.
 final class MrzStep extends KycFlowState {
   const MrzStep({this.prefill, this.error, this.isDemo = false});
@@ -75,6 +80,7 @@ final class ReviewStep extends KycFlowState {
     required this.document,
     required this.selfie,
     required this.liveness,
+    this.crossCheck,
     this.submitting = false,
     this.error,
   });
@@ -82,6 +88,10 @@ final class ReviewStep extends KycFlowState {
   final DocumentData document;
   final Uint8List selfie;
   final LivenessOutcome liveness;
+
+  /// Whether the text printed on the document agrees with the chip;
+  /// `null` when the document was not photographed.
+  final DocumentCrossCheck? crossCheck;
   final bool submitting;
   final KycError? error;
 
@@ -89,12 +99,20 @@ final class ReviewStep extends KycFlowState {
     document: document,
     selfie: selfie,
     liveness: liveness,
+    crossCheck: crossCheck,
     submitting: submitting ?? this.submitting,
     error: error,
   );
 
   @override
-  List<Object?> get props => [document, selfie, liveness, submitting, error];
+  List<Object?> get props => [
+    document,
+    selfie,
+    liveness,
+    crossCheck,
+    submitting,
+    error,
+  ];
 }
 
 /// The server's decision. All personal data has been wiped.

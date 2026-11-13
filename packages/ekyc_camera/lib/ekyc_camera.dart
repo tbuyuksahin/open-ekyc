@@ -11,3 +11,4 @@ import 'package:ekyc_camera/src/ml_kit_camera.dart';
 export 'src/camera_view.dart';
 export 'src/input_image.dart';
 export 'src/ml_kit_camera.dart';
+export 'src/shutter_button.dart';

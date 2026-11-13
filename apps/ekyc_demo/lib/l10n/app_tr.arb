@@ -49,5 +49,9 @@
   "resultManualReview": "İnceleniyor",
   "resultManualReviewBody": "Biraz daha zamana ihtiyacımız var, sonucu size bildireceğiz.",
   "resultDataErased": "Belge verileriniz ve selfie'niz bu cihazdan silindi.",
-  "resultRestart": "Tamam"
+  "resultRestart": "Tamam",
+  "crossCheckMatch": "Basılı bilgiler çiple uyuşuyor",
+  "crossCheckMatchBody": "Belge fotoğrafından okunan numara, ad ve tarihler çipteki bilgilerle aynı. Bu yardımcı bir kontroldür; asıl kanıt çipin imzasıdır.",
+  "crossCheckPartial": "{total} basılı bilgiden {found} tanesi uyuştu",
+  "crossCheckPartialBody": "Bazı bilgiler belge fotoğrafından okunamadı. Yansıma veya küçük yazı buna yol açabilir ve doğrulamayı engellemez; kararı sunucu verir."
 }

@@ -33,6 +33,20 @@ void main() {
         FaceChallenge.values.map(s.faceChallenge).toSet(),
         hasLength(FaceChallenge.values.length),
       );
+      expect(
+        DocumentHint.values
+            .map((h) => s.documentHint(h, DocumentSide.front))
+            .toSet(),
+        hasLength(DocumentHint.values.length),
+      );
+      expect(
+        s.documentHint(DocumentHint.noDocument, DocumentSide.back),
+        s.documentShowBack,
+      );
+      expect(
+        DocumentSide.values.map(s.documentSide).toSet(),
+        hasLength(DocumentSide.values.length),
+      );
     }
   });
 
@@ -49,6 +63,11 @@ void main() {
     expect(custom.mrzTitle, 'Kimlik');
     expect(custom.nfcTitle, EkycStrings.tr.nfcTitle);
     expect(custom.faceShutter, EkycStrings.tr.faceShutter);
+    expect(custom.documentTitle, EkycStrings.tr.documentTitle);
+    expect(
+      EkycStrings.en.copyWith(documentGlare: 'Shiny').documentGlare,
+      'Shiny',
+    );
   });
 
   test('the brand theme colors every overlay', () {
@@ -61,5 +80,7 @@ void main() {
     expect(theme.mrz.successColor, success);
     expect(theme.nfc.successColor, success);
     expect(theme.face.readyColor, success);
+    expect(theme.document.readyColor, primary);
+    expect(theme.document.successColor, success);
   });
 }

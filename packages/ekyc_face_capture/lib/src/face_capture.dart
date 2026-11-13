@@ -340,7 +340,7 @@ class _FaceCaptureState extends State<FaceCapture> {
             right: 0,
             bottom: 24,
             child: Center(
-              child: _Shutter(
+              child: ShutterButton(
                 label: widget.shutterLabel,
                 color: widget.style.readyColor,
                 onPressed: _canShoot ? _capture : null,
@@ -348,59 +348,6 @@ class _FaceCaptureState extends State<FaceCapture> {
             ),
           ),
       ],
-    );
-  }
-}
-
-class _Shutter extends StatelessWidget {
-  const _Shutter({
-    required this.label,
-    required this.color,
-    required this.onPressed,
-  });
-
-  final String label;
-  final Color color;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: AnimatedOpacity(
-        opacity: enabled ? 1 : 0.4,
-        duration: const Duration(milliseconds: 150),
-        // Own Material so the ink works in hosts without a Scaffold.
-        child: Material(
-          type: MaterialType.transparency,
-          shape: const CircleBorder(),
-          child: InkResponse(
-            onTap: onPressed,
-            radius: 44,
-            child: Container(
-              width: 76,
-              height: 76,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: enabled ? color : Colors.white,
-                  width: 5,
-                ),
-              ),
-              padding: const EdgeInsets.all(6),
-              child: const DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

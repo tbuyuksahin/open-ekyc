@@ -68,7 +68,13 @@ class FakeCameraPlatform extends CameraPlatform {
   bool get isStreaming => _frames.hasListener;
 
   /// Pushes one BGRA frame of [size] to the image stream.
-  void emitFrame({Size size = const Size(480, 640), int? rawFormat}) {
+  ///
+  /// The frame is black unless [bytes] (four per pixel) is given.
+  void emitFrame({
+    Size size = const Size(480, 640),
+    int? rawFormat,
+    Uint8List? bytes,
+  }) {
     final width = size.width.toInt();
     final height = size.height.toInt();
     _frames.add(
@@ -82,7 +88,7 @@ class FakeCameraPlatform extends CameraPlatform {
         height: height,
         planes: [
           CameraImagePlane(
-            bytes: Uint8List(width * height * 4),
+            bytes: bytes ?? Uint8List(width * height * 4),
             bytesPerRow: width * 4,
           ),
         ],

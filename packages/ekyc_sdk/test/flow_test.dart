@@ -233,9 +233,13 @@ void main() {
     });
 
     // Photo capture reads and deletes a real file.
-    Future<void> frames(WidgetTester tester, int count) async {
+    Future<void> frames(
+      WidgetTester tester,
+      int count, {
+      Uint8List? bytes,
+    }) async {
       for (var f = 0; f < count; f++) {
-        camera.emitFrame();
+        camera.emitFrame(bytes: bytes);
         for (var i = 0; i < 20; i++) {
           await tester.runAsync(
             () => Future<void>.delayed(const Duration(milliseconds: 10)),
@@ -271,6 +275,48 @@ void main() {
       final result = outcomes.single! as EkycResult;
       expect(result.selfie, camera.pictureBytes);
       expect(result.liveness, LivenessOutcome.notPerformed);
+    });
+
+    testWidgets('Ekyc.captureDocument photographs a passport page', (
+      tester,
+    ) async {
+      // A lit, detailed frame; the default black one is too dark.
+      final detailed = Uint8List(480 * 640 * 4);
+      for (var y = 0; y < 640; y++) {
+        for (var x = 0; x < 480; x++) {
+          final value = (x ~/ 2 + y ~/ 2).isEven ? 90 : 190;
+          detailed.fillRange((y * 480 + x) * 4, (y * 480 + x) * 4 + 4, value);
+        }
+      }
+      final outcomes = await pumpHost(
+        tester,
+        (context) => Ekyc.captureDocument(
+          context,
+          config: const EkycConfig(
+            document: EkycDocumentOptions(
+              kind: DocumentKind.passport,
+              allowModeSwitch: true,
+            ),
+          ),
+        ),
+      );
+      expect(find.text(en.documentTitle), findsOneWidget);
+      expect(find.text(en.documentSideFront), findsOneWidget);
+      await frames(tester, 1);
+      expect(find.text(en.documentTooDark), findsOneWidget);
+
+      await tester.tap(find.text(en.faceModeManual));
+      await tester.pump();
+      await frames(tester, 1, bytes: detailed);
+      expect(find.bySemanticsLabel(en.documentShutter), findsOneWidget);
+      await tester.tap(find.text(en.faceModeAuto));
+      await tester.pump();
+
+      await frames(tester, 4, bytes: detailed);
+      await tester.pumpAndSettle();
+      final result = outcomes.single! as DocumentCaptureResult;
+      expect(result.front, camera.pictureBytes);
+      expect(result.mrz!.documentNumber, 'L898902C3');
     });
 
     testWidgets('the MRZ camera scans and can switch to the form', (

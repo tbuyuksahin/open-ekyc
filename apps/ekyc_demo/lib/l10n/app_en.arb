@@ -49,5 +49,19 @@
   "resultManualReview": "Under review",
   "resultManualReviewBody": "We need a little more time and will let you know the result.",
   "resultDataErased": "Your document data and selfie have been erased from this device.",
-  "resultRestart": "Done"
+  "resultRestart": "Done",
+  "crossCheckMatch": "Printed details match the chip",
+  "crossCheckMatchBody": "The number, names and dates read from the photo of your document agree with the chip. This is a convenience check; the chip signature is the proof.",
+  "crossCheckPartial": "{found} of {total} printed details matched",
+  "crossCheckPartialBody": "Some details could not be read from the photo of your document. This can happen with glare or small print and does not block the verification; the server decides.",
+  "@crossCheckPartial": {
+    "placeholders": {
+      "found": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

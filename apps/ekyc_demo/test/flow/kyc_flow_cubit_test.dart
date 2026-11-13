@@ -52,18 +52,20 @@ void main() {
     );
   });
 
-  KycFlowCubit cubit({ChipReader? reader}) => KycFlowCubit(
-    ({required demo}) async => KycServices(
-      chipReader:
-          reader ??
-          ChipReader(
-            session: VirtualNfcSession(key: specimenKey, files: doc.files),
-            trustStore: doc.trustStore,
-          ),
-      repository: repo,
-      demoKey: demo ? specimenKey : null,
-    ),
-  );
+  KycFlowCubit cubit({ChipReader? reader, bool photograph = false}) =>
+      KycFlowCubit(
+        photographDocument: photograph,
+        ({required demo}) async => KycServices(
+          chipReader:
+              reader ??
+              ChipReader(
+                session: VirtualNfcSession(key: specimenKey, files: doc.files),
+                trustStore: doc.trustStore,
+              ),
+          repository: repo,
+          demoKey: demo ? specimenKey : null,
+        ),
+      );
 
   final selfie = Uint8List.fromList([1, 2, 3]);
 
@@ -195,5 +197,63 @@ void main() {
     final face = c.state as FaceStep;
     await c.close();
     expect(face.document.isWiped, isTrue);
+  });
+
+  group('document photo', () {
+    DocumentCaptureResult photos({bool withMrz = true}) =>
+        DocumentCaptureResult(
+          kind: DocumentKind.passport,
+          images: {
+            DocumentSide.front: Uint8List.fromList([5, 5]),
+          },
+          frontText: const ['ERIKSSON', 'ANNA MARIA', 'L898902C3'],
+          mrz: withMrz ? Mrz.parse(specimenMrz) : null,
+        );
+
+    test('comes first and its MRZ opens the chip', () async {
+      final c = cubit(photograph: true);
+      await c.start(demo: false);
+      expect(c.state, const DocumentStep());
+      final capture = photos();
+      await c.documentCaptured(capture, messages);
+      expect(c.state, isA<FaceStep>());
+      await c.faceCaptured(selfie);
+      final review = c.state as ReviewStep;
+      expect(review.crossCheck!.found, hasLength(3));
+      expect(review.copyWith(submitting: true).crossCheck, review.crossCheck);
+
+      await c.submit();
+      final sent =
+          verify(() => repo.submit(captureAny())).captured.single
+              as KycSubmission;
+      expect(sent.documentPhotos.keys, [DocumentSide.front]);
+      expect(sent.toJson()['documentPhotos'], {'front': 'AAA='});
+      // Wiped after submission.
+      expect(capture.front, [0, 0]);
+      await c.close();
+    });
+
+    test('falls back to the MRZ step when the MRZ was not read', () async {
+      final c = cubit(photograph: true);
+      await c.start(demo: false);
+      final first = photos(withMrz: false);
+      await c.documentCaptured(first, messages);
+      expect(c.state, const MrzStep());
+      // A capture that arrives outside the document step is discarded.
+      final stray = photos();
+      await c.documentCaptured(stray, messages);
+      expect(stray.front, [0, 0]);
+      expect(c.state, const MrzStep());
+      c.restart();
+      expect(first.front, [0, 0]);
+      await c.close();
+    });
+
+    test('is skipped in demo mode', () async {
+      final c = cubit(photograph: true);
+      await c.start(demo: true);
+      expect(c.state, isA<MrzStep>());
+      await c.close();
+    });
   });
 }

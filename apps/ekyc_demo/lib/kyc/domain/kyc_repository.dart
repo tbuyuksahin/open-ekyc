@@ -28,11 +28,16 @@ class KycSubmission {
     required this.selfie,
     required this.liveness,
     required this.clientPassiveAuth,
+    this.documentPhotos = const {},
   });
 
   final VerificationSession session;
   final Map<LdsFile, Uint8List> chipFiles;
   final Uint8List selfie;
+
+  /// Photos of the document, for the record. They prove nothing on their
+  /// own; the chip files do.
+  final Map<DocumentSide, Uint8List> documentPhotos;
   final LivenessOutcome liveness;
 
   /// The on-device result, sent for diagnostics only.
@@ -46,6 +51,10 @@ class KycSubmission {
         key.name: base64.encode(value),
     },
     'selfie': base64.encode(selfie),
+    'documentPhotos': {
+      for (final MapEntry(:key, :value) in documentPhotos.entries)
+        key.name: base64.encode(value),
+    },
     'liveness': liveness.name,
     'clientPassiveAuth': clientPassiveAuth.name,
   };
