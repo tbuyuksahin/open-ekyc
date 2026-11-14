@@ -1,7 +1,7 @@
 import 'package:ekyc_mrz_scanner/src/mrz_input.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:icao_mrz/icao_mrz.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Texts of [ManualMrzForm]. The defaults are English; pass your own
 /// localized values.

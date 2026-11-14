@@ -6,9 +6,9 @@ import 'package:ekyc_demo/kyc/ui/result_view.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations_en.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations_tr.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 Widget host(Widget child) => BlocProvider(
   create: (_) => KycFlowCubit(

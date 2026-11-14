@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:ekyc_camera/ekyc_camera.dart';
-import 'package:flutter/material.dart';
 import 'package:icao_mrz/icao_mrz.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// What the MRZ scanner is doing, for the overlay and the hint text.
 enum MrzScanStatus {

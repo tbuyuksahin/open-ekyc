@@ -1,7 +1,7 @@
 import 'package:ekyc_camera/ekyc_camera.dart';
 import 'package:ekyc_document_capture/src/document_gate.dart';
 import 'package:ekyc_document_capture/src/document_kind.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// What the capture guide shows.
 enum DocumentGuideState {

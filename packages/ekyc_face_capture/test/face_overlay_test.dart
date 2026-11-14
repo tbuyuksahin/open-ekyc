@@ -1,6 +1,6 @@
 import 'package:ekyc_face_capture/ekyc_face_capture.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   test('derives the guide state from the hint', () {

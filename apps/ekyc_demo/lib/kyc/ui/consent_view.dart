@@ -1,8 +1,8 @@
 import 'package:ekyc_demo/kyc/flow/kyc_flow_cubit.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
 import 'package:ekyc_sdk/ekyc_sdk.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ConsentView extends StatefulWidget {
   const ConsentView({required this.loading, super.key});

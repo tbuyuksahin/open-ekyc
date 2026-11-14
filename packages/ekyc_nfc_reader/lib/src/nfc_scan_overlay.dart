@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:ekyc_nfc_reader/src/chip_reader.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// What [NfcScanOverlay] shows.
 enum NfcScanStatus {

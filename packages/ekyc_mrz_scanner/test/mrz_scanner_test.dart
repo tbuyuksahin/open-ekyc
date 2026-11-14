@@ -1,8 +1,8 @@
 import 'package:ekyc_camera/testing.dart';
 import 'package:ekyc_mrz_scanner/ekyc_mrz_scanner.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 const td1 = [
   'I<UTOD231458907<<<<<<<<<<<<<<<',

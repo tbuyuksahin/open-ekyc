@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:ekyc_camera/ekyc_camera.dart';
 import 'package:ekyc_face_capture/src/face_challenge.dart';
 import 'package:ekyc_face_capture/src/face_quality.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// What [FaceOverlay] shows, derived from the gate's hint.
 enum FaceGuideState {

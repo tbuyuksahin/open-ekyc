@@ -2,8 +2,8 @@ import 'package:ekyc_demo/core/privacy_shield.dart';
 import 'package:ekyc_demo/kyc/flow/kyc_flow_cubit.dart';
 import 'package:ekyc_demo/kyc/ui/kyc_flow_page.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 class EkycApp extends StatelessWidget {
   const EkycApp({
@@ -31,7 +31,10 @@ class EkycApp extends StatelessWidget {
         onGenerateTitle: (c) => AppLocalizations.of(c).appTitle,
         debugShowCheckedModeBanner: false,
         locale: locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          ...GlobalMaterialLocalizations.delegates,
+        ],
         supportedLocales: AppLocalizations.supportedLocales,
         theme: ThemeData(colorSchemeSeed: seed),
         darkTheme: ThemeData(

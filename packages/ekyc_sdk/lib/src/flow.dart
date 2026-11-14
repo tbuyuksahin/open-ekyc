@@ -10,7 +10,7 @@ import 'package:ekyc_sdk/src/face_screen.dart';
 import 'package:ekyc_sdk/src/mrz_screen.dart';
 import 'package:ekyc_sdk/src/nfc_screen.dart';
 import 'package:ekyc_sdk/src/strings.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The verification flow as a widget, for embedding in your own page or
 /// navigation.

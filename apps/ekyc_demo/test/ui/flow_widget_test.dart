@@ -5,9 +5,9 @@ import 'package:ekyc_demo/kyc/flow/kyc_services.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations_en.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations_tr.dart';
 import 'package:ekyc_sdk/ekyc_sdk.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Pumps frames until [finder] matches, for screens with endless
 /// progress animations where pumpAndSettle would never return.

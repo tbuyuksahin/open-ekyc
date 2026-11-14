@@ -8,9 +8,9 @@ import 'package:ekyc_document_capture/src/document_kind.dart';
 import 'package:ekyc_document_capture/src/document_overlay.dart';
 import 'package:ekyc_document_capture/src/document_result.dart';
 import 'package:ekyc_document_capture/src/frame_quality.dart';
-import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:icao_mrz/icao_mrz.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// How the photo of each side is taken.
 enum DocumentCaptureMode {

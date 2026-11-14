@@ -8,8 +8,8 @@ repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/ekyc_nfc
 resolution: workspace
 
 environment:
-  sdk: ^3.12.0
-  flutter: ">=3.44.0"
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
 
 dependencies:
   flutter:
@@ -17,6 +17,7 @@ dependencies:
   flutter_nfc_kit: ^3.6.2
   icao_mrtd: ^0.1.0-dev.1
   icao_mrz: ^0.1.0-dev.1
+  material_ui: ^1.11.0
 
 dev_dependencies:
   flutter_test:

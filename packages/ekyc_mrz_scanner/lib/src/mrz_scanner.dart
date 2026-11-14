@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:ekyc_camera/ekyc_camera.dart';
 import 'package:ekyc_mrz_scanner/src/mrz_overlay.dart';
-import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:icao_mrz/icao_mrz.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Accepts an MRZ only after the same text was read several times in a
 /// row, so a single misread frame that happens to pass the check digits

@@ -1,6 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:ekyc_camera/src/ml_kit_camera.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Shows an [MlKitCamera] filling its box, with an [overlay] on top.
 class MlKitCameraView extends StatelessWidget {

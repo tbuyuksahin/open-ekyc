@@ -2,7 +2,7 @@ import 'package:ekyc_document_capture/ekyc_document_capture.dart';
 import 'package:ekyc_sdk/src/config.dart';
 import 'package:ekyc_sdk/src/scaffold.dart';
 import 'package:ekyc_sdk/src/strings.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The document photo step as a full screen: instructions, an optional
 /// automatic/manual switch, and the capture view.

@@ -1,7 +1,7 @@
 import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:ekyc_sdk/src/scaffold.dart';
 import 'package:ekyc_sdk/src/strings.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The NFC step as a full screen: where to hold the document, read
 /// progress, and a retryable error.

@@ -9,8 +9,8 @@ import 'package:ekyc_demo/kyc/ui/result_view.dart';
 import 'package:ekyc_demo/kyc/ui/review_view.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
 import 'package:ekyc_sdk/ekyc_sdk.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Renders the current step of the flow.
 ///

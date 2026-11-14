@@ -1,9 +1,9 @@
 import 'package:ekyc_camera/ekyc_camera.dart' show ShutterButton;
 import 'package:ekyc_camera/testing.dart';
 import 'package:ekyc_document_capture/ekyc_document_capture.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 const frontText =
     'UTOPIA IDENTITY CARD\nERIKSSON\nANNA MARIA\n'

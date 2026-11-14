@@ -1,10 +1,9 @@
 import 'package:ekyc_camera/testing.dart';
 import 'package:ekyc_nfc_reader/testing.dart';
 import 'package:ekyc_sdk/ekyc_sdk.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'helpers.dart';
 

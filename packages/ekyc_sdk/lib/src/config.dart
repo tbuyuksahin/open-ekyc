@@ -5,7 +5,7 @@ import 'package:ekyc_face_capture/ekyc_face_capture.dart';
 import 'package:ekyc_mrz_scanner/ekyc_mrz_scanner.dart';
 import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:ekyc_sdk/src/strings.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A step of the verification flow.
 enum EkycStep {

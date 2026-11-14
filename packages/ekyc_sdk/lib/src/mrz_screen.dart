@@ -1,7 +1,7 @@
 import 'package:ekyc_mrz_scanner/ekyc_mrz_scanner.dart';
 import 'package:ekyc_sdk/src/scaffold.dart';
 import 'package:ekyc_sdk/src/strings.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The MRZ step as a full screen: camera scanner with a switch to the
 /// manual form.

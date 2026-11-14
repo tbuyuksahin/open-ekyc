@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Covers the app with an opaque screen whenever it is not in the
 /// foreground, so identity data does not appear in the iOS app switcher

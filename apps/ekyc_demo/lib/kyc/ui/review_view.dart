@@ -6,10 +6,10 @@ import 'package:ekyc_demo/kyc/flow/kyc_flow_state.dart';
 import 'package:ekyc_demo/kyc/ui/error_text.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
 import 'package:ekyc_sdk/ekyc_sdk.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icao_mrtd/icao_mrtd.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ReviewView extends StatelessWidget {
   const ReviewView({required this.state, super.key});

@@ -1,6 +1,6 @@
 import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   test('maps chip read steps to overlay states', () {

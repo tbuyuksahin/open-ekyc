@@ -4,10 +4,10 @@ import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:ekyc_camera/ekyc_camera.dart';
 import 'package:ekyc_camera/testing.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

@@ -7,8 +7,8 @@ import 'package:ekyc_camera/ekyc_camera.dart';
 import 'package:ekyc_face_capture/src/face_challenge.dart';
 import 'package:ekyc_face_capture/src/face_overlay.dart';
 import 'package:ekyc_face_capture/src/face_quality.dart';
-import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// How the selfie is taken once the face is good.
 enum FaceCaptureMode {
