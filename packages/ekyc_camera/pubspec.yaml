@@ -3,7 +3,7 @@ description: >-
   Camera plumbing shared by the open-ekyc capture packages: an ML Kit frame
   stream that follows the app lifecycle, a cover-fit preview and an overlay
   scrim.
-version: 0.1.0-dev.2
+version: 0.1.0-dev.3
 repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/ekyc_camera
 resolution: workspace
 
