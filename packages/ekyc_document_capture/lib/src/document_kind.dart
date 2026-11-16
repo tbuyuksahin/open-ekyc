@@ -1,3 +1,5 @@
+import 'package:icao_mrz/icao_mrz.dart';
+
 /// A side of an identity document.
 enum DocumentSide {
   /// The side with the portrait (the data page of a passport).
@@ -14,6 +16,8 @@ enum DocumentKind {
     aspectRatio: 85.6 / 53.98,
     sides: [DocumentSide.front, DocumentSide.back],
     mrzSide: DocumentSide.back,
+    mrzFormat: MrzFormat.td1,
+    mrzZoneHeight: 17.9 / 53.98,
   ),
 
   /// A passport data page (ICAO TD3): portrait and MRZ on the same page.
@@ -21,12 +25,16 @@ enum DocumentKind {
     aspectRatio: 125 / 88,
     sides: [DocumentSide.front],
     mrzSide: DocumentSide.front,
+    mrzFormat: MrzFormat.td3,
+    mrzZoneHeight: 23.2 / 88,
   );
 
   const DocumentKind({
     required this.aspectRatio,
     required this.sides,
     required this.mrzSide,
+    required this.mrzFormat,
+    required this.mrzZoneHeight,
   });
 
   /// Width divided by height.
@@ -37,6 +45,13 @@ enum DocumentKind {
 
   /// The side that carries the machine readable zone.
   final DocumentSide mrzSide;
+
+  /// The layout of its machine readable zone.
+  final MrzFormat mrzFormat;
+
+  /// Height of the machine readable zone as a fraction of the document
+  /// height, from ICAO 9303.
+  final double mrzZoneHeight;
 
   /// Whether [side] carries the machine readable zone.
   bool hasMrzOn(DocumentSide side) => side == mrzSide;

@@ -8,6 +8,7 @@ import 'package:ekyc_document_capture/src/document_kind.dart';
 import 'package:ekyc_document_capture/src/document_overlay.dart';
 import 'package:ekyc_document_capture/src/document_result.dart';
 import 'package:ekyc_document_capture/src/frame_quality.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 import 'package:material_ui/material_ui.dart';
@@ -27,8 +28,10 @@ typedef FrameQualityMeasure = FrameQuality? Function(InputImage image);
 /// Live camera view that photographs the sides of an identity document.
 ///
 /// Each frame is checked on the device: light, glare, sharpness, and
-/// whether the expected side is in view (the side with the machine
-/// readable zone is recognized by reading it). Calls [onCaptured] once,
+/// whether the expected side is in view. The side with the machine
+/// readable zone is recognized by reading it; the front must show text,
+/// a portrait (found with on-device face detection) and nothing that looks
+/// like a machine readable zone. Calls [onCaptured] once,
 /// after the last side. Frames are never stored; the photos exist only in
 /// memory and are wiped if the widget is removed before it completes.
 class DocumentCapture extends StatefulWidget {
@@ -105,6 +108,9 @@ class _DocumentCaptureState extends State<DocumentCapture> {
     frameInterval: widget.frameInterval,
   );
   final _recognizer = TextRecognizer();
+  final _faces = FaceDetector(
+    options: FaceDetectorOptions(minFaceSize: 0.05),
+  );
   late final DocumentQualityGate _gate = widget.gate ?? DocumentQualityGate();
   late final List<DocumentSide> _sides = widget.sides ?? widget.kind.sides;
   final _images = <DocumentSide, Uint8List>{};
@@ -138,20 +144,41 @@ class _DocumentCaptureState extends State<DocumentCapture> {
         if (line.trim().length >= 3) line.trim(),
     ];
     final mrz = MrzRecognizer.recognize(text.text);
+    final mrzLike = lines.any(DocumentObservation.looksLikeMrz);
     _seenText = lines;
     _seenMrz = mrz;
+    final expectMrz = widget.kind.hasMrzOn(_side);
+    final expectPortrait = _side == DocumentSide.front && !expectMrz;
+    int? portraits;
+    if (expectPortrait &&
+        _gate.requirePortrait &&
+        mrz == null &&
+        !mrzLike &&
+        lines.length >= _gate.minTextLines) {
+      portraits = (await _faces.processImage(input)).length;
+      if (!mounted || _busy) return;
+    }
     final observation = DocumentObservation(
       textLines: lines.length,
       hasMrz: mrz != null,
+      mrzLike: mrzLike,
+      portraits: portraits,
       quality: quality,
     );
-    final expectMrz = widget.kind.hasMrzOn(_side);
     if (widget.captureMode == DocumentCaptureMode.manual) {
-      final hint = _gate.hintFor(observation, expectMrz: expectMrz);
+      final hint = _gate.hintFor(
+        observation,
+        expectMrz: expectMrz,
+        expectPortrait: expectPortrait,
+      );
       if (hint != _hint) setState(() => _hint = hint);
       return;
     }
-    final hint = _gate.evaluate(observation, expectMrz: expectMrz);
+    final hint = _gate.evaluate(
+      observation,
+      expectMrz: expectMrz,
+      expectPortrait: expectPortrait,
+    );
     if (hint == null) {
       await _capture();
     } else if (hint != _hint || _gate.progress != _progress) {
@@ -220,6 +247,7 @@ class _DocumentCaptureState extends State<DocumentCapture> {
   void dispose() {
     _camera.dispose();
     unawaited(_recognizer.close());
+    unawaited(_faces.close());
     if (!_handedOver) {
       for (final bytes in _images.values) {
         bytes.fillRange(0, bytes.length, 0);
@@ -244,6 +272,8 @@ class _DocumentCaptureState extends State<DocumentCapture> {
             progress: manual ? 0 : _progress,
             hint: _captured ? null : widget.hintText?.call(_hint, _side),
             label: widget.sideLabel?.call(_side),
+            step: _index,
+            stepCount: _sides.length,
             style: widget.style,
           ),
         ),

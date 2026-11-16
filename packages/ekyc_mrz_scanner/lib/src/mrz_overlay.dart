@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:ekyc_camera/ekyc_camera.dart';
 import 'package:icao_mrz/icao_mrz.dart';
 import 'package:material_ui/material_ui.dart';
@@ -400,23 +398,17 @@ class MrzOverlayPainter extends CustomPainter {
             ? style.successColor.withValues(alpha: 0.25)
             : style.mrzBandColor,
     );
-    _paintMrzText(canvas, band);
+    GuidePainting.mrzCharacters(
+      canvas,
+      band,
+      lines: format.lineCount,
+      length: format.lineLength,
+      color: style.templateColor,
+    );
 
     final scan = scanPosition;
     if (scan != null) {
-      final y = band.top + band.height * scan;
-      final line = Rect.fromLTRB(band.left, y - 1.5, band.right, y + 1.5);
-      canvas.drawRect(
-        line,
-        Paint()
-          ..shader = LinearGradient(
-            colors: [
-              style.accentColor.withValues(alpha: 0),
-              style.accentColor,
-              style.accentColor.withValues(alpha: 0),
-            ],
-          ).createShader(line),
-      );
+      GuidePainting.scanLine(canvas, band, scan, style.accentColor);
     }
 
     canvas.drawRRect(
@@ -426,7 +418,16 @@ class MrzOverlayPainter extends CustomPainter {
         ..strokeWidth = style.borderWidth
         ..color = frameColor,
     );
-    if (style.cornerWidth > 0) _paintCorners(canvas, doc, frameColor);
+    if (style.cornerWidth > 0) {
+      GuidePainting.corners(
+        canvas,
+        doc,
+        radius: style.cornerRadius,
+        length: style.cornerLength,
+        width: style.cornerWidth,
+        color: frameColor,
+      );
+    }
   }
 
   void _paintTemplate(Canvas canvas, Rect doc) {
@@ -443,27 +444,7 @@ class MrzOverlayPainter extends CustomPainter {
         doc.width * 0.26,
         band.top - doc.top - unit * 4,
       );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(photo, const Radius.circular(4)),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5
-          ..color = style.templateColor,
-      );
-      final head = Offset(photo.center.dx, photo.top + photo.height * 0.38);
-      canvas
-        ..drawCircle(head, photo.width * 0.2, paint)
-        ..drawArc(
-          Rect.fromCenter(
-            center: Offset(photo.center.dx, photo.bottom),
-            width: photo.width * 0.75,
-            height: photo.height * 0.6,
-          ),
-          math.pi,
-          math.pi,
-          true,
-          paint,
-        );
+      GuidePainting.portrait(canvas, photo, style.templateColor);
       textLeft = photo.right + doc.width * 0.05;
     }
     final lines = hasPhoto ? 5 : 4;
@@ -479,76 +460,6 @@ class MrzOverlayPainter extends CustomPainter {
         ),
         paint,
       );
-    }
-  }
-
-  void _paintMrzText(Canvas canvas, Rect band) {
-    final lineHeight = band.height / format.lineCount;
-    final probe = TextPainter(
-      text: const TextSpan(
-        text: '<',
-        style: TextStyle(fontFamily: 'monospace', fontSize: 10),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    final fontSize = (band.width * 0.94 / format.lineLength) / probe.width * 10;
-    probe.dispose();
-    for (var i = 0; i < format.lineCount; i++) {
-      final text = TextPainter(
-        text: TextSpan(
-          text: '<' * format.lineLength,
-          style: TextStyle(
-            fontFamily: 'monospace',
-            fontSize: fontSize.clamp(4, lineHeight * 0.8),
-            color: style.templateColor,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      text
-        ..paint(
-          canvas,
-          Offset(
-            band.center.dx - text.width / 2,
-            band.top + lineHeight * i + (lineHeight - text.height) / 2,
-          ),
-        )
-        ..dispose();
-    }
-  }
-
-  void _paintCorners(Canvas canvas, Rect doc, Color color) {
-    final r = style.cornerRadius;
-    final l = style.cornerLength + r;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = style.cornerWidth
-      ..strokeCap = StrokeCap.round
-      ..color = color;
-    final arc = Size.fromRadius(r);
-    for (final (corner, start) in [
-      (doc.topLeft, math.pi),
-      (doc.topRight - Offset(2 * r, 0), -math.pi / 2),
-      (doc.bottomRight - Offset(2 * r, 2 * r), 0.0),
-      (doc.bottomLeft - Offset(0, 2 * r), math.pi / 2),
-    ]) {
-      final rect = corner & arc;
-      final path = Path()..addArc(rect, start, math.pi / 2);
-      canvas.drawPath(path, paint);
-    }
-    // Straight arms next to each rounded corner.
-    final arms = [
-      (doc.topLeft + Offset(r, 0), doc.topLeft + Offset(l, 0)),
-      (doc.topLeft + Offset(0, r), doc.topLeft + Offset(0, l)),
-      (doc.topRight - Offset(r, 0), doc.topRight - Offset(l, 0)),
-      (doc.topRight + Offset(0, r), doc.topRight + Offset(0, l)),
-      (doc.bottomRight - Offset(r, 0), doc.bottomRight - Offset(l, 0)),
-      (doc.bottomRight - Offset(0, r), doc.bottomRight - Offset(0, l)),
-      (doc.bottomLeft + Offset(r, 0), doc.bottomLeft + Offset(l, 0)),
-      (doc.bottomLeft - Offset(0, r), doc.bottomLeft - Offset(0, l)),
-    ];
-    for (final (a, b) in arms) {
-      canvas.drawLine(a, b, paint);
     }
   }
 

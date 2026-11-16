@@ -17,6 +17,7 @@ dependencies:
   flutter:
     sdk: flutter
   google_mlkit_commons: ^1.0.1
+  google_mlkit_face_detection: ^1.0.1
   google_mlkit_text_recognition: ^1.0.1
   icao_mrz: ^0.1.0-dev.1
   material_ui: ^1.11.0

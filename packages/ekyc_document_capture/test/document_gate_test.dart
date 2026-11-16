@@ -6,8 +6,16 @@ const good = FrameQuality(brightness: 140, glare: 0, sharpness: 30);
 DocumentObservation see({
   int lines = 5,
   bool mrz = false,
+  bool mrzLike = false,
+  int? portraits = 1,
   FrameQuality? quality = good,
-}) => DocumentObservation(textLines: lines, hasMrz: mrz, quality: quality);
+}) => DocumentObservation(
+  textLines: lines,
+  hasMrz: mrz,
+  mrzLike: mrzLike,
+  portraits: portraits,
+  quality: quality,
+);
 
 void main() {
   group('DocumentQualityGate.hintFor', () {
@@ -84,6 +92,62 @@ void main() {
         gate.hintFor(see(quality: null), expectMrz: false),
         DocumentHint.holdStill,
       );
+    });
+  });
+
+  group('the front', () {
+    final gate = DocumentQualityGate();
+
+    test('lines that look like an MRZ mean the back is shown', () {
+      expect(
+        gate.hintFor(see(mrzLike: true), expectMrz: false),
+        DocumentHint.wrongSide,
+      );
+    });
+
+    test('needs a portrait when asked for one', () {
+      for (final portraits in [0, null]) {
+        expect(
+          gate.hintFor(
+            see(portraits: portraits),
+            expectMrz: false,
+            expectPortrait: true,
+          ),
+          DocumentHint.noDocument,
+        );
+      }
+      expect(
+        gate.hintFor(see(), expectMrz: false, expectPortrait: true),
+        DocumentHint.holdStill,
+      );
+      expect(
+        DocumentQualityGate(requirePortrait: false).hintFor(
+          see(portraits: 0),
+          expectMrz: false,
+          expectPortrait: true,
+        ),
+        DocumentHint.holdStill,
+      );
+    });
+
+    test('looksLikeMrz spots partial machine readable lines', () {
+      for (final line in [
+        'I<TURA12B3456<<<<<<<<',
+        'ERIKSSON << ANNA < MARIA',
+        'L898902C36UTO7408122F1204159',
+        'P«UTO«ERIKSSON««ANNA',
+      ]) {
+        expect(DocumentObservation.looksLikeMrz(line), isTrue, reason: line);
+      }
+      for (final line in [
+        'Surname / Nom',
+        'ERIKSSON',
+        'Date of birth 12.08.1974',
+        'T.C. KİMLİK NO 12345678901',
+        'a<b',
+      ]) {
+        expect(DocumentObservation.looksLikeMrz(line), isFalse, reason: line);
+      }
     });
   });
 

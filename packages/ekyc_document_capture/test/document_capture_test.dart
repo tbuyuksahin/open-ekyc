@@ -21,26 +21,50 @@ const good = FrameQuality(brightness: 140, glare: 0, sharpness: 30);
 
 void main() {
   const channel = MethodChannel('google_mlkit_text_recognizer');
+  const faceChannel = MethodChannel('google_mlkit_face_detector');
   late FakeCameraPlatform camera;
   late String ocrText;
+  late int portraits;
   FrameQuality? quality;
 
   setUp(() {
     CameraPlatform.instance = camera = FakeCameraPlatform();
     ocrText = '';
+    portraits = 1;
     quality = good;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-          channel,
-          (call) async => call.method == 'vision#startTextRecognizer'
-              ? {'text': ocrText, 'blocks': <Object>[]}
-              : null,
-        );
+      ..setMockMethodCallHandler(
+        channel,
+        (call) async => call.method == 'vision#startTextRecognizer'
+            ? {'text': ocrText, 'blocks': <Object>[]}
+            : null,
+      )
+      ..setMockMethodCallHandler(
+        faceChannel,
+        (call) async => call.method == 'vision#startFaceDetector'
+            ? [
+                for (var i = 0; i < portraits; i++)
+                  {
+                    'rect': {
+                      'left': 40,
+                      'top': 200,
+                      'right': 120,
+                      'bottom': 300,
+                    },
+                    'headEulerAngleX': 0.0,
+                    'headEulerAngleY': 0.0,
+                    'headEulerAngleZ': 0.0,
+                    'landmarks': <String, Object?>{},
+                  },
+              ]
+            : null,
+      );
   });
 
   tearDown(
     () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null),
+      ..setMockMethodCallHandler(channel, null)
+      ..setMockMethodCallHandler(faceChannel, null),
   );
 
   // Photo capture reads and deletes a real file, so frames run with real
@@ -137,6 +161,32 @@ void main() {
     expect(find.text('front: wrongSide'), findsOneWidget);
     expect(overlay(tester).state, DocumentGuideState.adjusting);
     expect(camera.pictures, isEmpty);
+  });
+
+  testWidgets('a back whose MRZ cannot be read is still the wrong side', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app((_) {}));
+    await tester.pump();
+    ocrText =
+        'KİMLİK KARTI\nIDENTITY CARD\nYAPAN MAKAM\n'
+        'I<TURA12B3456<<<<<<<<<<<<\n7408122F12<<';
+    await frame(tester, count: 3);
+    expect(find.text('front: wrongSide'), findsOneWidget);
+    expect(camera.pictures, isEmpty);
+  });
+
+  testWidgets('the front needs a portrait', (tester) async {
+    await tester.pumpWidget(app((_) {}));
+    await tester.pump();
+    ocrText = frontText;
+    portraits = 0;
+    await frame(tester, count: 3);
+    expect(find.text('front: noDocument'), findsOneWidget);
+    expect(camera.pictures, isEmpty);
+    portraits = 1;
+    await frame(tester, count: 2);
+    expect(camera.pictures, hasLength(1));
   });
 
   testWidgets('waits for light, no glare and focus', (tester) async {

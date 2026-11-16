@@ -370,4 +370,35 @@ void main() {
     );
     expect((await frame).planes.single.bytes, everyElement(7));
   });
+
+  test(
+    'GuidePainting draws corners, MRZ characters, portrait and scan line',
+    () {
+      final recorder = PictureRecorder();
+      final canvas = Canvas(recorder);
+      const rect = Rect.fromLTWH(10, 10, 300, 190);
+      GuidePainting.corners(
+        canvas,
+        rect,
+        radius: 12,
+        length: 28,
+        width: 5,
+        color: const Color(0xFFFFFFFF),
+      );
+      GuidePainting.mrzCharacters(
+        canvas,
+        const Rect.fromLTWH(20, 140, 280, 50),
+        lines: 3,
+        length: 30,
+        color: const Color(0x55FFFFFF),
+      );
+      GuidePainting.portrait(
+        canvas,
+        const Rect.fromLTWH(20, 30, 80, 100),
+        const Color(0x55FFFFFF),
+      );
+      GuidePainting.scanLine(canvas, rect, 0.5, const Color(0xFF4FC3F7));
+      recorder.endRecording().dispose();
+    },
+  );
 }
