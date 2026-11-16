@@ -96,7 +96,7 @@ paketin README'sinde.
 * `very_good_analysis` ile `dart analyze --fatal-infos` çalışır. Tip
   kontrolleri katı modda (strict casts/inference/raw types). `avoid_print`
   uyarı değil, hata olarak işaretlenir.
-* 240 test:
+* 249 test:
   * Her BAC ve güvenli mesajlaşma adımı için ICAO 9303-11 Ek D vektörleri.
   * Sanal çiple tam okuma: yanlış anahtar, kopan bağlantı, sahte MAC.
   * Gerçek imzalarla Passive Authentication: değiştirilmiş veri, yanlış

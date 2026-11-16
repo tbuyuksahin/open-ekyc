@@ -92,7 +92,7 @@ README lists every option.
 
 * `dart analyze --fatal-infos` with `very_good_analysis` and strict
   casts/inference/raw types; `avoid_print` is an error.
-* 240 tests, covering:
+* 249 tests, covering:
   * ICAO 9303-11 Appendix D vectors for every BAC and secure messaging
     step;
   * a virtual chip for the full read path (wrong key, lost tag, forged
