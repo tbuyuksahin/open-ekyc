@@ -12,16 +12,16 @@ environment:
 
 dependencies:
   bloc: ^9.0.0
-  ekyc_nfc_reader: ^0.1.0-dev.1
-  ekyc_sdk: ^0.1.0-dev.1
+  ekyc_nfc_reader: ^0.1.0-dev.2
+  ekyc_sdk: ^0.1.0-dev.2
   equatable: ^2.0.7
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
   flutter_localizations:
     sdk: flutter
-  icao_mrtd: ^0.1.0-dev.1
-  icao_mrz: ^0.1.0-dev.1
+  icao_mrtd: ^0.1.0-dev.2
+  icao_mrz: ^0.1.0-dev.2
   intl: any
   material_ui: ^1.11.0
 

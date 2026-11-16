@@ -1,6 +1,5 @@
 import 'package:ekyc_document_capture/ekyc_document_capture.dart';
 import 'package:ekyc_face_capture/ekyc_face_capture.dart';
-import 'package:ekyc_mrz_scanner/ekyc_mrz_scanner.dart';
 import 'package:ekyc_nfc_reader/ekyc_nfc_reader.dart';
 import 'package:ekyc_sdk/src/config.dart';
 import 'package:flutter/foundation.dart';

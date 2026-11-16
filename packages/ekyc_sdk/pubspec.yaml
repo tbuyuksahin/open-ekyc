@@ -4,7 +4,7 @@ description: >-
   chip reading with Passive Authentication and selfie capture, or any
   single step, with built-in English and Turkish texts and themable
   overlays.
-version: 0.1.0-dev.1
+version: 0.1.0-dev.2
 repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/ekyc_sdk
 resolution: workspace
 
@@ -13,16 +13,16 @@ environment:
   flutter: ">=3.47.0"
 
 dependencies:
-  ekyc_document_capture: ^0.1.0-dev.1
-  ekyc_face_capture: ^0.1.0-dev.1
-  ekyc_mrz_scanner: ^0.1.0-dev.1
-  ekyc_nfc_reader: ^0.1.0-dev.1
+  ekyc_document_capture: ^0.1.0-dev.2
+  ekyc_face_capture: ^0.1.0-dev.2
+  ekyc_mrz_scanner: ^0.1.0-dev.2
+  ekyc_nfc_reader: ^0.1.0-dev.2
   flutter:
     sdk: flutter
   material_ui: ^1.11.0
 
 dev_dependencies:
-  ekyc_camera: ^0.1.0-dev.1
+  ekyc_camera: ^0.1.0-dev.2
   flutter_test:
     sdk: flutter
-  icao_mrtd: ^0.1.0-dev.1
+  icao_mrtd: ^0.1.0-dev.2

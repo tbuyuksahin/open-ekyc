@@ -2,7 +2,7 @@ name: icao_mrtd
 description: >-
   Read ICAO 9303 eMRTD chips (ePassports, eID cards) over any NFC transport:
   BAC, secure messaging, LDS data groups and Passive Authentication in pure Dart.
-version: 0.1.0-dev.1
+version: 0.1.0-dev.2
 repository: https://github.com/tbuyuksahin/open-ekyc/tree/main/packages/icao_mrtd
 resolution: workspace
 
@@ -10,7 +10,7 @@ environment:
   sdk: ^3.13.0
 
 dependencies:
-  icao_mrz: ^0.1.0-dev.1
+  icao_mrz: ^0.1.0-dev.2
   meta: ^1.16.0
   pointycastle: ^4.0.0
 

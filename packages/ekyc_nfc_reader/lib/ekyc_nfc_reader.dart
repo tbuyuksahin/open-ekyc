@@ -18,7 +18,9 @@ export 'package:icao_mrtd/icao_mrtd.dart'
         CscaStore,
         Dg11,
         FaceImage,
+        FaceImageFormat,
         LdsFile,
+        PassiveAuthFailure,
         PassiveAuthResult,
         PassiveAuthStatus;
 

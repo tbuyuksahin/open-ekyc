@@ -7,7 +7,6 @@ import 'package:ekyc_demo/kyc/ui/error_text.dart';
 import 'package:ekyc_demo/l10n/gen/app_localizations.dart';
 import 'package:ekyc_sdk/ekyc_sdk.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:icao_mrtd/icao_mrtd.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 

@@ -17,3 +17,36 @@ Camera code shared by `ekyc_mrz_scanner` and `ekyc_face_capture`.
 * `package:ekyc_camera/testing.dart` provides `FakeCameraPlatform`, so
   camera code can be widget-tested without a device. It can emit frames,
   write photos and deny permission.
+
+## Setup
+
+### Android
+
+In `android/app/build.gradle.kts`, ML Kit and the camera plugin need API 24
+or later:
+
+```kotlin
+defaultConfig {
+    minSdk = maxOf(24, flutter.minSdkVersion)
+}
+```
+
+In `android/app/src/main/AndroidManifest.xml`, inside `<manifest>`:
+
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-feature android:name="android.hardware.camera" android:required="false" />
+```
+
+### iOS
+
+ML Kit needs iOS 15.5 or later. Set `IPHONEOS_DEPLOYMENT_TARGET = 15.5` in
+the Runner target (and `platform :ios, '15.5'` in `ios/Podfile` if your
+project uses CocoaPods).
+
+In `ios/Runner/Info.plist`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Used to photograph your document and take a selfie for identity verification.</string>
+```

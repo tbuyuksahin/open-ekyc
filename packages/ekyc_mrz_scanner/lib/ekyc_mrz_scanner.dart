@@ -11,7 +11,8 @@
 /// ```
 library;
 
-export 'package:icao_mrz/icao_mrz.dart' show Mrz, MrzFormat, MrzKey;
+export 'package:icao_mrz/icao_mrz.dart'
+    show Mrz, MrzDate, MrzFormat, MrzKey, Sex;
 
 export 'src/manual_mrz_form.dart';
 export 'src/mrz_input.dart';
